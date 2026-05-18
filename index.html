@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heat Conduction Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --hot:#ff4500; --hot2:#ff8c00; --cold:#00b4d8; --cold2:#0077b6;
+      --bg:#06080f; --surface:#0d1117; --card:#111827; --border:#1f2937; --border2:#374151;
+      --text:#f0f4ff; --muted:#6b7280; --muted2:#9ca3af; --accent:#fbbf24; --accent2:#f59e0b;
+      --green:#10b981; --red:#ef4444; --purple:#8b5cf6;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:Outfit,sans-serif;min-height:100vh;overflow-x:hidden}
+    #particle-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.4}
+    .header{position:sticky;top:0;z-index:200;background:rgba(6,8,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+    .logo-wrap{display:flex;align-items:center;gap:.8rem}
+    .logo-img{height:40px;width:40px;object-fit:contain;border-radius:8px;background:#fff;padding:3px;box-shadow:0 0 16px rgba(251,191,36,.3)}
+    .logo-text{display:flex;flex-direction:column}
+    .logo-name{font-size:.78rem;font-weight:700;color:var(--accent);letter-spacing:.06em;line-height:1}
+    .logo-sub{font-size:.62rem;color:var(--muted);font-family:"JetBrains Mono",monospace;letter-spacing:.04em;margin-top:2px}
+    nav{display:flex;gap:.15rem;flex-wrap:wrap;justify-content:flex-end}
+    nav a{color:var(--muted2);text-decoration:none;font-size:.74rem;font-family:"JetBrains Mono",monospace;padding:.4rem .75rem;border-radius:6px;transition:.2s;white-space:nowrap}
+    nav a:hover, nav a.active{color:var(--accent);background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25)}
+    .tab-bar{display:flex;gap:.5rem;padding:1.2rem 2rem;overflow-x:auto;border-bottom:1px solid var(--border);z-index:1;background:var(--bg)}
+    .tab{flex-shrink:0;background:none;border:1px solid var(--border);color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:.72rem;padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;transition:.25s}
+    .tab.active{background:var(--accent);border-color:var(--accent);color:#06080f;font-weight:700;box-shadow:0 0 20px rgba(251,191,36,.25)}
+    .section{display:none;padding:2.5rem 2rem;max-width:1000px;margin:0 auto;position:relative;z-index:1}
+    .section.active{display:block;animation:fadeUp .4s cubic-bezier(.16,1,.3,1)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .section-title{font-size:1.8rem;font-weight:800;letter-spacing:-.02em;margin-bottom:.3rem}
+    .section-sub{color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:.72rem;margin-bottom:2.5rem;letter-spacing:.05em}
+    .hero{position:relative;padding:5rem 2rem 4rem;text-align:center;z-index:1}
+    .hero:before{content:"";position:absolute;inset:0;background:
+      radial-gradient(ellipse 60% 50% at 20% 50%, rgba(255,69,0,.12) 0, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 80% 50%, rgba(0,180,216,.12) 0, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 50% 0%, rgba(251,191,36,.08) 0, transparent 70%)}
+    .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:var(--accent);font-family:"JetBrains Mono",monospace;font-size:.68rem;padding:.35rem .9rem;border-radius:20px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.8rem;position:relative;z-index:1}
+    .hero-badge:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+    .hero h1{font-size:clamp(2.5rem,7vw,5rem);font-weight:900;line-height:1.05;margin-bottom:1.2rem;letter-spacing:-.02em;position:relative;z-index:1}
+    .hero h1 .fire{color:var(--hot)}
+    .hero h1 .ice{color:var(--cold)}
+    .hero h1 .label{color:var(--text)}
+    .hero-desc{color:var(--muted2);max-width:580px;margin:0 auto 2.5rem;font-size:1.05rem;line-height:1.7;position:relative;z-index:1}
+    .college-strip{display:inline-flex;align-items:center;gap:.8rem;background:var(--card);border:1px solid var(--border2);padding:.6rem 1.4rem;border-radius:10px;font-size:.8rem;color:var(--muted2);font-family:"JetBrains Mono",monospace;position:relative;z-index:1}
+    .college-strip img{height:28px;width:28px;object-fit:contain;background:#fff;padding:2px;border-radius:4px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.6rem;margin-bottom:1.4rem}
+    .card h3{font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:.9rem}
+    .card p, .card li{color:var(--muted2);font-size:.9rem;line-height:1.75}
+    .card ul{padding-left:1.2rem}
+    .formula-box{background:linear-gradient(135deg, rgba(251,191,36,.05), rgba(251,191,36,.1));border:1px solid rgba(251,191,36,.25);border-radius:10px;padding:1.2rem 1.6rem;margin:1rem 0;font-family:"JetBrains Mono",monospace;font-size:1.15rem;color:var(--accent);text-align:center}
+    .material-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(140px,1fr));gap:.8rem;margin-bottom:1.5rem}
+    .mat-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.9rem .6rem;cursor:pointer;text-align:center;transition:.25s;color:var(--muted2);font-family:Outfit,sans-serif}
+    .mat-btn.active{border-color:var(--accent);background:rgba(251,191,36,.08);color:var(--accent);box-shadow:0 0 16px rgba(251,191,36,.12)}
+    .mat-info-banner{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:.9rem 1.2rem;margin-bottom:1.4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+    .mat-info-name{font-weight:700;font-size:1rem;color:var(--accent)}
+    .mat-info-stats{display:flex;gap:1.2rem;font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--muted2);flex-wrap:wrap}
+    .sim-wrapper{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:2rem;position:relative;overflow:hidden}
+    .rod-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap}
+    .end-label{display:flex;flex-direction:column;align-items:center;gap:.2rem;font-family:"JetBrains Mono",monospace;font-size:.7rem}
+    .end-label .temp-val{font-size:1.4rem;font-weight:700}
+    .end-label.hot .temp-val{color:var(--hot)}
+    .end-label.cold .temp-val{color:var(--cold)}
+    .thermal-meter{display:flex;flex-direction:column;align-items:center;gap:.3rem;font-family:"JetBrains Mono",monospace;font-size:.65rem;color:var(--muted)}
+    .meter-bar{width:200px;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--cold2),var(--cold),#00ffaa,var(--accent),var(--hot2),var(--hot));border:1px solid var(--border2);position:relative}
+    .meter-needle{position:absolute;top:-4px;width:4px;height:18px;background:#fff;border-radius:2px;transform:translateX(-50%);left:0;transition:left .5s ease;box-shadow:0 0 8px rgba(255,255,255,.6)}
+    .rod-area{position:relative;margin:.5rem 0 1rem}
+    #rod-canvas{width:100%;height:90px;border-radius:12px;display:block;cursor:crosshair;box-shadow:0 4px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05)}
+    .rod-glow-left,.rod-glow-right{position:absolute;top:50%;transform:translateY(-50%);width:60px;height:60px;border-radius:50%;filter:blur(10px);pointer-events:none;opacity:.3}
+    .rod-glow-left{left:-10px;background:radial-gradient(circle,var(--hot) 0, transparent 70%)}
+    .rod-glow-right{right:-10px;background:radial-gradient(circle,var(--cold) 0, transparent 70%)}
+    #temp-graph{border-radius:10px;border:1px solid var(--border);background:var(--surface);width:100%;margin-top:.5rem}
+    .click-hint{text-align:center;font-size:.72rem;color:var(--muted);font-family:"JetBrains Mono",monospace;margin-top:.5rem;letter-spacing:.04em}
+    .sim-controls{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:1.8rem}
+    .ctrl-group label{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;font-family:"JetBrains Mono",monospace;color:var(--muted);margin-bottom:.6rem;letter-spacing:.04em;text-transform:uppercase}
+    .ctrl-group label .lbl-val{color:var(--accent);font-weight:700;font-size:.8rem}
+    input[type="range"]{-webkit-appearance:none;width:100%;height:5px;background:var(--border);border-radius:3px;outline:none}
+    input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 10px rgba(251,191,36,.3)}
+    .btn-row{display:flex;gap:.8rem;margin-top:1.8rem;flex-wrap:wrap;align-items:center}
+    .btn{font-family:Outfit,sans-serif;font-size:.82rem;font-weight:700;padding:.65rem 1.5rem;border-radius:9px;border:none;cursor:pointer;transition:.2s;letter-spacing:.03em}
+    .btn-play{background:var(--green);color:#fff}
+    .btn-play.paused{background:var(--accent);color:#06080f}
+    .btn-outline{background:none;border:1px solid var(--border2);color:var(--muted2)}
+    .btn-danger{background:none;border:1px solid rgba(239,68,68,.3);color:var(--red)}
+    .sim-stats{display:grid;grid-template-columns:repeat(auto-fill, minmax(140px,1fr));gap:.8rem;margin-top:1.4rem}
+    .stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;font-family:"JetBrains Mono",monospace;font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+    .stat-chip .stat-val{font-size:1.1rem;font-weight:700;color:var(--text);display:block;margin-top:.3rem;font-family:Outfit,sans-serif}
+    .accent-stat{color:var(--accent)!important}
+    .hot-stat{color:var(--hot)!important}
+    .steady-badge{display:none;align-items:center;gap:.5rem;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:.5rem 1rem;font-size:.78rem;color:var(--green);font-family:"JetBrains Mono",monospace;margin-top:1rem}
+    .steady-badge.show{display:flex;animation:fadeUp .4s ease}
+    .steady-dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+    .equilibrium-bar-wrap{margin-top:1rem}
+    .equilibrium-label{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);font-family:"JetBrains Mono",monospace;margin-bottom:.4rem}
+    .equilibrium-bar-bg{background:var(--border);border-radius:4px;height:6px;overflow:hidden}
+    .equilibrium-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--cold),var(--green));transition:width .5s ease}
+    .fact-ticker{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;margin-top:1rem;font-size:.78rem;color:var(--muted2);display:flex;align-items:center;gap:.8rem;overflow:hidden}
+    .fact-text-wrap{overflow:hidden;flex:1}
+    .ref-item{display:flex;align-items:flex-start;gap:1rem;padding:1.1rem 1.2rem;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:.9rem}
+    .ref-num{font-family:"JetBrains Mono",monospace;font-size:.66rem;color:var(--accent);background:rgba(251,191,36,.1);padding:.2rem .55rem;border-radius:5px;flex-shrink:0;margin-top:.1rem}
+    .feedback-card .form-group{margin-bottom:1rem}
+    .feedback-card label{display:block;margin-bottom:.4rem;color:var(--accent);font-size:.8rem;font-family:"JetBrains Mono",monospace}
+    .feedback-card input,.feedback-card select,.feedback-card textarea{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:.8rem 1rem;font-family:Outfit,sans-serif;outline:none}
+    .fb-status{margin-top:1rem;color:var(--green);font-weight:600}
+    footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:2rem 2rem;display:flex;align-items:center;justify-content:space-between;margin-top:4rem;flex-wrap:wrap;gap:1rem}
+    .footer-brand{display:flex;align-items:center;gap:.8rem}
+    .footer-brand img{height:32px;width:32px;object-fit:contain;background:#fff;padding:2px;border-radius:5px}
+    .footer-text,.footer-right{font-size:.75rem;color:var(--muted);font-family:"JetBrains Mono",monospace;line-height:1.6}
+    @media(max-width:900px){
+      .sim-controls{grid-template-columns:1fr}
+      .header{height:auto;padding:1rem 1rem;flex-direction:column;gap:.8rem}
+      .section{padding:2rem 1rem}
+      footer{padding:2rem 1rem}
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-bg"></canvas>
+
+  <header class="header">
+    <div class="logo-wrap">
+      <img class="logo-img" src="https://raw.githubusercontent.com/dineshkute90/virtuallab_LAUC/main/pccoe.png" alt="PCCOE Logo" onerror="this.style.display='none'">
+      <div class="logo-text">
+        <span class="logo-name">PCCOE Virtual Labs</span>
+        <span class="logo-sub">Applied Sciences & Humanities</span>
+      </div>
+    </div>
+    <nav>
+      <a href="#" class="active" id="nav-home" onclick="showSection('home')">Home</a>
+      <a href="#" id="nav-aim" onclick="showSection('aim')">Aim</a>
+      <a href="#" id="nav-theory" onclick="showSection('theory')">Theory</a>
+      <a href="#" id="nav-pretest" onclick="showSection('pretest')">Pretest</a>
+      <a href="#" id="nav-simulation" onclick="showSection('simulation')">Simulation</a>
+      <a href="#" id="nav-posttest" onclick="showSection('posttest')">Posttest</a>
+      <a href="#" id="nav-contributors" onclick="showSection('contributors')">Contributors</a>
+      <a href="#" id="nav-faculty" onclick="showSection('faculty')">Faculty In Charge</a>
+      <a href="#" id="nav-feedback" onclick="showSection('feedback')">Feedback</a>
+      <a href="#" id="nav-thankyou" onclick="showSection('thankyou')">Thank You</a>
+    </nav>
+  </header>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="showSection('home')">Home</button>
+    <button class="tab" onclick="showSection('aim')">Aim</button>
+    <button class="tab" onclick="showSection('theory')">Theory</button>
+    <button class="tab" onclick="showSection('pretest')">Pretest</button>
+    <button class="tab" onclick="showSection('simulation')">Simulation</button>
+    <button class="tab" onclick="showSection('posttest')">Posttest</button>
+    <button class="tab" onclick="showSection('contributors')">Contributors</button>
+    <button class="tab" onclick="showSection('faculty')">Faculty</button>
+    <button class="tab" onclick="showSection('feedback')">Feedback</button>
+    <button class="tab" onclick="showSection('thankyou')">Thank You</button>
+  </div>
+
+  <section id="home" class="section active hero">
+    <div class="hero-badge">Engineering Mathematics Experiment 04</div>
+    <h1><span class="fire">Heat</span> <span class="label">Conduction</span><br><span class="label">in</span> <span class="ice">Metal Rod</span></h1>
+    <p class="hero-desc">Watch thermal energy flow in real time. Explore Fourier’s Law, finite-difference physics, and steady-state equilibrium through an interactive simulation.</p>
+    <div class="college-strip">
+      <img src="https://raw.githubusercontent.com/dineshkute90/virtuallab_LAUC/main/pccoe.png" alt="PCCOE" onerror="this.style.display='none'">
+      Pimpri Chinchwad College of Engineering &nbsp;&nbsp;|&nbsp;&nbsp; ASH Dept &nbsp;&nbsp;|&nbsp;&nbsp; 2025
+    </div>
+  </section>
+
+  <section id="aim" class="section">
+    <div class="section-title">Aim of the Experiment</div>
+    <div class="section-sub">objective • scope • learning outcomes</div>
+    <div class="card">
+      <h3>Primary Objective</h3>
+      <p>To study and simulate heat conduction along a metal rod, verify Fourier’s Law of Heat Conduction, and analyse steady-state temperature distribution through interactive numerical modelling.</p>
+    </div>
+    <div class="card">
+      <h3>Learning Outcomes</h3>
+      <ul>
+        <li>Understand how thermal energy moves from hot regions to cold regions.</li>
+        <li>Observe the effect of conductivity on heat diffusion speed.</li>
+        <li>Identify steady state and linear temperature distribution.</li>
+        <li>Interpret a temperature graph and heat flux values.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="theory" class="section">
+    <div class="section-title">Theory</div>
+    <div class="section-sub">background equations • concepts</div>
+    <div class="card">
+      <h3>What is Heat Conduction?</h3>
+      <p>Heat conduction is the transfer of thermal energy through matter via direct particle-to-particle interaction without bulk movement of the material. It occurs whenever a temperature gradient exists across a solid or stationary fluid.</p>
+    </div>
+    <div class="card">
+      <h3>Fourier’s Law</h3>
+      <div class="formula-box">Q = -kA(dT/dx)</div>
+      <p>The negative sign indicates that heat flows from high temperature to low temperature. The thermal conductivity k decides how easily a material allows heat to pass through it.</p>
+    </div>
+    <div class="card">
+      <h3>Transient Heat Equation</h3>
+      <div class="formula-box">∂T/∂t = α ∂²T/∂x²</div>
+      <p>This equation describes how temperature changes with time. In steady state, ∂T/∂t = 0, so the rod temperature becomes linear from the hot end to the cold end.</p>
+    </div>
+    <div class="card">
+      <h3>Finite Difference Idea</h3>
+      <p>The rod is divided into small nodes. Each node exchanges heat with its neighbours step by step, creating a realistic diffusion effect. Larger conductivity means quicker spreading of heat.</p>
+    </div>
+  </section>
+
+  <section id="pretest" class="section">
+    <div class="section-title">Pretest</div>
+    <div class="section-sub">assess your knowledge before the experiment</div>
+    <div id="pretest-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-play" onclick="submitQuiz('pretest')">Submit Answers</button>
+      <button class="btn btn-outline" onclick="resetQuiz('pretest')">Reset</button>
+    </div>
+    <div class="quiz-result" id="pretest-result"></div>
+  </section>
+
+  <section id="simulation" class="section">
+    <div class="section-title">Heat Conduction Simulation</div>
+    <div class="section-sub">interactive • real-time physics • finite difference model</div>
+
+    <div class="card">
+      <h3>Choose Your Material</h3>
+      <div class="material-grid" id="material-grid">
+        <button class="mat-btn active" onclick="selectMaterial(this,'Copper',401)">Copper</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Silver',429)">Silver</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Aluminium',237)">Aluminium</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Steel',50)">Steel</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Glass',1)">Glass</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Custom',100)" id="custom-mat-btn">Custom</button>
+      </div>
+      <div class="mat-info-banner">
+        <span class="mat-info-name" id="mat-info-name">Copper</span>
+        <div class="mat-info-stats">
+          <span><strong id="mat-info-k">401</strong> W/mK</span>
+          <span id="mat-info-use">Best for electronics heat sinks</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-wrapper">
+      <div class="rod-header">
+        <div class="end-label hot">
+          <span class="end-name">Hot End</span>
+          <span class="temp-val" id="lbl-hot">300</span>
+          <span style="font-family:JetBrains Mono,monospace;font-size:.65rem;color:var(--muted)">°C</span>
+        </div>
+
+        <div class="thermal-meter">
+          <div class="meter-bar">
+            <div class="meter-needle" id="meter-needle"></div>
+          </div>
+          <span>Midpoint Temperature</span>
+        </div>
+
+        <div class="end-label cold" style="text-align:right;">
+          <span class="end-name">Cold End</span>
+          <span class="temp-val" id="lbl-cold">20</span>
+          <span style="font-family:JetBrains Mono,monospace;font-size:.65rem;color:var(--muted)">°C</span>
+        </div>
+      </div>
+
+      <div class="rod-area">
+        <div class="rod-glow-left" id="glow-left"></div>
+        <canvas id="rod-canvas" height="90"></canvas>
+        <div class="rod-glow-right" id="glow-right"></div>
+      </div>
+      <div class="click-hint">Hover over the rod to read temperature at any point • Click to add a heat pulse!</div>
+      <canvas id="temp-graph" height="120"></canvas>
+
+      <div class="equilibrium-bar-wrap">
+        <div class="equilibrium-label">
+          <span>Approach to Steady State</span>
+          <span id="equil-pct">0%</span>
+        </div>
+        <div class="equilibrium-bar-bg">
+          <div class="equilibrium-bar-fill" id="equil-bar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="steady-badge" id="steady-badge">
+        <div class="steady-dot"></div>
+        Steady state reached — temperature profile is now linear.
+      </div>
+
+      <div class="sim-controls">
+        <div class="ctrl-group">
+          <label>Thermal Conductivity k <span class="lbl-val" id="lbl-k">401</span> W/mK</label>
+          <input type="range" id="sl-k" min="1" max="500" value="401" oninput="updateSim()">
+        </div>
+        <div class="ctrl-group">
+          <label>Hot End Temperature <span class="lbl-val" id="lbl-th">300</span> °C</label>
+          <input type="range" id="sl-th" min="50" max="800" value="300" oninput="updateSim()">
+        </div>
+        <div class="ctrl-group">
+          <label>Cold End Temperature <span class="lbl-val" id="lbl-tc">20</span> °C</label>
+          <input type="range" id="sl-tc" min="0" max="200" value="20" oninput="updateSim()">
+        </div>
+        <div class="ctrl-group">
+          <label>Simulation Speed <span class="lbl-val" id="lbl-sp">5</span>x</label>
+          <input type="range" id="sl-sp" min="1" max="20" value="5" oninput="updateSim()">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-play paused" id="btn-play" onclick="toggleSim()">Play</button>
+        <button class="btn btn-outline" onclick="stepSim()">Step</button>
+        <button class="btn btn-danger" onclick="resetSim()">Reset</button>
+        <button class="btn btn-outline" onclick="exportData()">Export CSV</button>
+      </div>
+
+      <div class="sim-stats">
+        <div class="stat-chip">Elapsed Time <span class="stat-val accent-stat" id="stat-t">0.000 s</span></div>
+        <div class="stat-chip">Midpoint Temp <span class="stat-val" id="stat-mid">0 °C</span></div>
+        <div class="stat-chip">Heat Flux Q <span class="stat-val hot-stat" id="stat-q">0 W/m²</span></div>
+        <div class="stat-chip">State <span class="stat-val" id="stat-state">Paused</span></div>
+      </div>
+    </div>
+
+    <div class="fact-ticker" id="fact-ticker">
+      <span class="fact-icon">💡</span>
+      <div class="fact-text-wrap">
+        <span class="fact-text" id="fact-text">Did you know? Copper conducts heat 8x faster than Steel!</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="posttest" class="section">
+    <div class="section-title">Posttest</div>
+    <div class="section-sub">verify your understanding after the simulation</div>
+    <div id="posttest-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-play" onclick="submitQuiz('posttest')">Submit Answers</button>
+      <button class="btn btn-outline" onclick="resetQuiz('posttest')">Reset</button>
+    </div>
+    <div class="quiz-result" id="posttest-result"></div>
+  </section>
+
+  <section id="contributors" class="section">
+    <div class="section-title">Contributors</div>
+    <div class="section-sub">project team members</div>
+    <div class="card">
+      <ul>
+        <li>125B13256 — Arya Pravin Dumbare</li>
+        <li>125B1E251 — Unnati Badhe</li>
+        <li>125B1E246 — Shruti Mahendrakar</li>
+        <li>125B1E258 — Shourya Kannawar</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="faculty" class="section">
+    <div class="section-title">Faculty In Charge</div>
+    <div class="section-sub">guidance and support</div>
+    <div class="card">
+      <h3>Mr. Ganesh Tarte</h3>
+      <p>We sincerely thank Mr. Ganesh Tarte sir for his valuable guidance, support, encouragement, and help throughout the project.</p>
+    </div>
+  </section>
+
+  <section id="feedback" class="section">
+    <div class="section-title">Feedback</div>
+    <div class="section-sub">share your thoughts on the project</div>
+    <div class="card feedback-card">
+      <div class="form-group">
+        <label for="fb-name">Your Name</label>
+        <input type="text" id="fb-name" placeholder="Enter your name">
+      </div>
+      <div class="form-group">
+        <label for="fb-rating">Rating</label>
+        <select id="fb-rating">
+          <option>5 - Excellent</option>
+          <option>4 - Very Good</option>
+          <option>3 - Good</option>
+          <option>2 - Average</option>
+          <option>1 - Needs Improvement</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="fb-msg">Feedback</label>
+        <textarea id="fb-msg" rows="5" placeholder="Write your feedback here..."></textarea>
+      </div>
+      <button class="btn btn-play" onclick="submitFeedback()">Submit Feedback</button>
+      <p id="fb-status" class="fb-status"></p>
+    </div>
+  </section>
+
+  <section id="thankyou" class="section">
+    <div class="section-title">Thank You</div>
+    <div class="section-sub">closing note</div>
+    <div class="card">
+      <p>Thank you for visiting our Heat Conduction Lab project.</p>
+      <p>We sincerely hope this interactive simulation helped in understanding the concept of heat transfer in a simple and meaningful way.</p>
+      <p>We are grateful to our faculty in charge, Mr. Ganesh Tarte sir, for his continuous support and guidance throughout the project.</p>
+      <p>We also thank our contributors, friends, and users for their encouragement and feedback.</p>
+      <p>Your time and interest mean a lot to us. Thank you for being part of this project journey.</p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-brand">
+      <img src="https://raw.githubusercontent.com/dineshkute90/virtuallab_LAUC/main/pccoe.png" alt="PCCOE" onerror="this.style.display='none'">
+      <div class="footer-text">Pimpri Chinchwad College of Engineering<br><span style="opacity:.5;">Applied Sciences & Humanities | Heat Conduction Module 2025</span></div>
+    </div>
+    <div class="footer-right">Virtual Labs Platform<br><span style="opacity:.5;">Engineering Mathematics Experiment 04</span></div>
+  </footer>
+
+  <script>
+    const sectionOrder = ["home","aim","theory","pretest","simulation","posttest","contributors","faculty","feedback","thankyou"];
+    const quizData = {
+      pretest: [
+        {q:"What does Fourier’s Law describe?",opts:["Radiation from a hot body","Heat transfer due to temperature gradient","Convection coefficient","Specific heat"],ans:1,exp:"Fourier’s Law relates heat flux to temperature gradient."},
+        {q:"In Q = -kA(dT/dx), k is:",opts:["Thermal diffusivity","Thermal conductivity","Density","Latent heat"],ans:1,exp:"k is thermal conductivity."},
+        {q:"The negative sign means heat flows:",opts:["Cold to hot","Hot to cold","Only upward","Randomly"],ans:1,exp:"Heat naturally flows from high to low temperature."},
+        {q:"Which has the highest thermal conductivity?",opts:["Steel","Aluminium","Copper","Silver"],ans:3,exp:"Silver is the best conductor among common metals."},
+        {q:"At steady state, temperature profile is:",opts:["Linear","Sinusoidal","Exponential","Constant everywhere"],ans:0,exp:"Steady-state 1D conduction gives a linear profile."}
+      ],
+      posttest: [
+        {q:"Increasing conductivity k makes heat spread:",opts:["Slower","Faster","Unchanged","Backward"],ans:1,exp:"Higher conductivity increases diffusion speed."},
+        {q:"Thermal diffusivity tells us:",opts:["How fast temperature changes propagate","How much heat is stored","How heavy the rod is","The boiling point"],ans:0,exp:"It measures how quickly a material responds to thermal change."},
+        {q:"The explicit finite difference method is stable when r = αΔt/Δx²:",opts:["r > 1","r ≤ 0.5","r = 2","r = 0"],ans:1,exp:"For stability, r must be 0.5 or less."},
+        {q:"If hot end is 300°C and cold end is 20°C, midpoint steady temp is:",opts:["300°C","20°C","160°C","100°C"],ans:2,exp:"A linear profile gives midpoint 160°C."},
+        {q:"At steady state, ∂T/∂t equals:",opts:["1","0","∞","k"],ans:1,exp:"Temperature no longer changes with time."}
+      ]
+    };
+    const userAnswers = { pretest: [], posttest: [] };
+    let currentMaterial = "Copper";
+    let running = false;
+    let simFrame = null;
+    let simTime = 0;
+    let steadyReached = false;
+    const N = 100;
+    let T = new Float64Array(N);
+    let Tprev = new Float64Array(N);
+    let rodCanvas, rodCtx, graphCanvas, graphCtx, canvasInited = false, hoverX = -1;
+
+    function showSection(id){
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
+      document.getElementById(id)?.classList.add("active");
+      const idx = sectionOrder.indexOf(id);
+      document.querySelectorAll(".tab")[idx]?.classList.add("active");
+      document.getElementById("nav-" + id)?.classList.add("active");
+      if(id === "simulation") initCanvas();
+      if(id === "pretest") buildQuiz("pretest");
+      if(id === "posttest") buildQuiz("posttest");
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    function buildQuiz(type){
+      const container = document.getElementById(type + "-questions");
+      if(!container || container.innerHTML.trim() !== "") return;
+      const letters = ["A","B","C","D"];
+      let html = "";
+      quizData[type].forEach((item, i) => {
+        html += `<div class="quiz-question" id="${type}-q${i}">
+          <div class="q-num">QUESTION ${String(i+1).padStart(2,"0")}</div>
+          <div class="q-text">${item.q}</div>
+          <div class="options">`;
+        item.opts.forEach((opt, j) => {
+          html += `<div class="opt" id="${type}-q${i}-o${j}" onclick="selectOpt('${type}',${i},${j})"><span class="opt-letter">${letters[j]}</span>${opt}</div>`;
+        });
+        html += `</div><div class="explanation" id="${type}-exp${i}">${item.exp}</div></div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function selectOpt(type, qIdx, oIdx){
+      quizData[type][qIdx].opts.forEach((_, j) => document.getElementById(`${type}-q${qIdx}-o${j}`)?.classList.remove("selected"));
+      document.getElementById(`${type}-q${qIdx}-o${oIdx}`)?.classList.add("selected");
+      userAnswers[type][qIdx] = oIdx;
+    }
+
+    function submitQuiz(type){
+      const data = quizData[type];
+      let score = 0;
+      data.forEach((item, i) => {
+        const selected = userAnswers[type][i];
+        const qEl = document.getElementById(`${type}-q${i}`);
+        const expEl = document.getElementById(`${type}-exp${i}`);
+        if(!qEl || !expEl) return;
+        qEl.classList.remove("correct","wrong");
+        item.opts.forEach((_,j) => document.getElementById(`${type}-q${i}-o${j}`)?.classList.remove("correct-opt","wrong-opt","selected"));
+        if(selected === undefined) return;
+        if(selected === item.ans){
+          score++;
+          qEl.classList.add("correct");
+          document.getElementById(`${type}-q${i}-o${selected}`)?.classList.add("correct-opt");
+        } else {
+          qEl.classList.add("wrong");
+          document.getElementById(`${type}-q${i}-o${selected}`)?.classList.add("wrong-opt");
+          document.getElementById(`${type}-q${i}-o${item.ans}`)?.classList.add("correct-opt");
+        }
+        expEl.style.display = "block";
+      });
+      const pct = Math.round((score / data.length) * 100);
+      const color = pct >= 80 ? "var(--green)" : pct >= 50 ? "var(--accent)" : "var(--red)";
+      const msg = pct === 100 ? "Perfect Score!" : pct >= 80 ? "Excellent Work!" : pct >= 50 ? "Good Effort!" : "Review Theory";
+      const resultEl = document.getElementById(type + "-result");
+      resultEl.style.display = "block";
+      resultEl.innerHTML = `<div class="score-ring" style="border:4px solid ${color};color:${color}">${pct}%</div>
+        <div class="result-msg" style="color:${color}">${msg}</div>
+        <div class="result-sub">${score}/${data.length} correct</div>`;
+    }
+
+    function resetQuiz(type){
+      userAnswers[type] = [];
+      const q = document.getElementById(type + "-questions");
+      const r = document.getElementById(type + "-result");
+      if(q) q.innerHTML = "";
+      if(r) r.style.display = "none";
+      buildQuiz(type);
+    }
+
+    const matInfo = {
+      Copper:{use:"Best for electronics heat sinks"},
+      Silver:{use:"Precision electronics"},
+      Aluminium:{use:"Aerospace and cookware"},
+      Steel:{use:"Structural applications"},
+      Glass:{use:"Thermal insulation"},
+      Custom:{use:"Adjust the k slider"}
+    };
+
+    function selectMaterial(el, name, k){
+      document.querySelectorAll(".mat-btn").forEach(b => b.classList.remove("active"));
+      el.classList.add("active");
+      currentMaterial = name;
+      document.getElementById("sl-k").value = k;
+      updateSim();
+      document.getElementById("mat-info-name").textContent = name;
+      document.getElementById("mat-info-use").textContent = matInfo[name].use;
+    }
+
+    const facts = [
+      "Copper conducts heat much faster than Steel.",
+      "Silver is the best metal conductor of heat.",
+      "At steady state, the temperature profile becomes linear.",
+      "Fourier published his heat equation in 1822.",
+      "Heat always flows from hot to cold unless work is done.",
+      "Higher thermal conductivity means faster diffusion.",
+      "Finite difference methods approximate a continuous rod using nodes."
+    ];
+    let factIdx = 0;
+    setInterval(() => {
+      factIdx = (factIdx + 1) % facts.length;
+      const el = document.getElementById("fact-text");
+      if(el){
+        el.style.animation = "none";
+        el.offsetHeight;
+        el.textContent = facts[factIdx];
+        el.style.animation = "";
+      }
+    }, 6000);
+
+    function initCanvas(){
+      if(canvasInited) return;
+      canvasInited = true;
+      rodCanvas = document.getElementById("rod-canvas");
+      rodCtx = rodCanvas.getContext("2d");
+      graphCanvas = document.getElementById("temp-graph");
+      graphCtx = graphCanvas.getContext("2d");
+      rodCanvas.addEventListener("mousemove", e => {
+        const rect = rodCanvas.getBoundingClientRect();
+        hoverX = (e.clientX - rect.left) / rect.width;
+        drawRod();
+      });
+      rodCanvas.addEventListener("mouseleave", () => { hoverX = -1; drawRod(); });
+      rodCanvas.addEventListener("click", e => {
+        const rect = rodCanvas.getBoundingClientRect();
+        const fx = (e.clientX - rect.left) / rect.width;
+        const idx = Math.min(N - 1, Math.floor(fx * N));
+        const p = getParams();
+        const pulse = (p.Th - p.Tc) * 0.3;
+        for(let i=Math.max(1, idx-3); i<Math.min(N-2, idx+3); i++) {
+          T[i] = Math.min(p.Th, T[i] + pulse * Math.exp(-((i-idx)**2)/5));
+        }
+        steadyReached = false;
+        document.getElementById("steady-badge").classList.remove("show");
+        drawRod(); drawGraph();
+      });
+      window.addEventListener("resize", () => { if(canvasInited){ drawRod(); drawGraph(); }});
+      resetSim();
+    }
+
+    function getParams(){
+      return {
+        k: parseFloat(document.getElementById("sl-k").value),
+        Th: parseFloat(document.getElementById("sl-th").value),
+        Tc: parseFloat(document.getElementById("sl-tc").value),
+        sp: parseFloat(document.getElementById("sl-sp").value)
+      };
+    }
+
+    function updateSim(){
+      const p = getParams();
+      document.getElementById("lbl-k").textContent = p.k;
+      document.getElementById("lbl-th").textContent = p.Th;
+      document.getElementById("lbl-tc").textContent = p.Tc;
+      document.getElementById("lbl-sp").textContent = p.sp;
+      document.getElementById("mat-info-k").textContent = p.k.toFixed(0);
+      resetSim();
+    }
+
+    function resetSim(){
+      const p = getParams();
+      T = new Float64Array(N);
+      Tprev = new Float64Array(N);
+      for(let i=0;i<N;i++) T[i] = p.Tc + (p.Th - p.Tc) * (1 - i/(N-1));
+      simTime = 0;
+      steadyReached = false;
+      document.getElementById("steady-badge").classList.remove("show");
+      document.getElementById("stat-state").textContent = running ? "Running" : "Paused";
+      document.getElementById("btn-play").textContent = running ? "Pause" : "Play";
+      document.getElementById("btn-play").classList.toggle("paused", !running);
+      drawRod(); drawGraph(); updateStats();
+    }
+
+    function stepSim(){
+      const p = getParams();
+      const alpha = Math.min(0.45, p.k / 1200);
+      const dt = 0.08;
+      Tprev = T.slice();
+      for(let i=1;i<N-1;i++){
+        T[i] = Tprev[i] + alpha * (Tprev[i-1] - 2*Tprev[i] + Tprev[i+1]);
+      }
+      T[0] = p.Th;
+      T[N-1] = p.Tc;
+      simTime += dt;
+      updateStats();
+      drawRod();
+      drawGraph();
+      const mid = T[Math.floor(N/2)];
+      const linearMid = (p.Th + p.Tc) / 2;
+      const err = Math.abs(mid - linearMid);
+      const spread = Math.max(1, p.Th - p.Tc);
+      const pct = Math.max(0, Math.min(100, 100 - (err / spread) * 100));
+      document.getElementById("equil-pct").textContent = `${pct.toFixed(0)}%`;
+      document.getElementById("equil-bar").style.width = `${pct}%`;
+      if(pct > 96 && !steadyReached){
+        steadyReached = true;
+        document.getElementById("steady-badge").classList.add("show");
+      }
+    }
+
+    function updateStats(){
+      const p = getParams();
+      const mid = T[Math.floor(N/2)];
+      const gradient = T[1] - T[0];
+      const q = -p.k * gradient;
+      document.getElementById("lbl-hot").textContent = p.Th.toFixed(0);
+      document.getElementById("lbl-cold").textContent = p.Tc.toFixed(0);
+      document.getElementById("stat-t").textContent = simTime.toFixed(3) + " s";
+      document.getElementById("stat-mid").textContent = mid.toFixed(1) + " °C";
+      document.getElementById("stat-q").textContent = q.toFixed(2) + " W/m²";
+      document.getElementById("meter-needle").style.left = `${((mid - p.Tc) / Math.max(1, p.Th - p.Tc)) * 100}%`;
+      document.getElementById("stat-state").textContent = running ? "Running" : "Paused";
+      document.getElementById("btn-play").textContent = running ? "Pause" : "Play";
+      document.getElementById("btn-play").classList.toggle("paused", !running);
+    }
+
+    function drawRod(){
+      if(!rodCtx) return;
+      const w = rodCanvas.width = rodCanvas.clientWidth * devicePixelRatio;
+      const h = rodCanvas.height = 90 * devicePixelRatio;
+      rodCtx.clearRect(0,0,w,h);
+      const blockW = w / N;
+      for(let i=0;i<N;i++){
+        const t = T[i];
+        const hue = 240 - (Math.max(0, Math.min(100, t / 4)) * 2.4);
+        rodCtx.fillStyle = `hsl(${hue},90%,55%)`;
+        rodCtx.fillRect(i*blockW, 0, blockW + 1, h);
+        rodCtx.strokeStyle = "rgba(255,255,255,.07)";
+        rodCtx.strokeRect(i*blockW, 0, blockW + 1, h);
+      }
+      if(hoverX >= 0){
+        const idx = Math.min(N-1, Math.floor(hoverX * N));
+        rodCtx.fillStyle = "rgba(255,255,255,.18)";
+        rodCtx.fillRect(idx*blockW, 0, blockW, h);
+        rodCtx.fillStyle = "#fff";
+        rodCtx.font = `${14*devicePixelRatio}px Outfit`;
+        rodCtx.fillText(`${T[idx].toFixed(1)}°C`, idx*blockW + 6, 20*devicePixelRatio);
+      }
+    }
+
+    function drawGraph(){
+      if(!graphCtx) return;
+      const w = graphCanvas.width = graphCanvas.clientWidth * devicePixelRatio;
+      const h = graphCanvas.height = 120 * devicePixelRatio;
+      graphCtx.clearRect(0,0,w,h);
+      graphCtx.strokeStyle = "rgba(255,255,255,.08)";
+      for(let i=0;i<5;i++){
+        const y = (h/5)*i;
+        graphCtx.beginPath(); graphCtx.moveTo(0,y); graphCtx.lineTo(w,y); graphCtx.stroke();
+      }
+      const maxT = Math.max(...T), minT = Math.min(...T);
+      graphCtx.beginPath();
+      T.forEach((t,i) => {
+        const x = (i/(N-1))*w;
+        const y = h - ((t - minT) / Math.max(1, maxT - minT)) * (h - 20) - 10;
+        if(i===0) graphCtx.moveTo(x,y); else graphCtx.lineTo(x,y);
+      });
+      graphCtx.strokeStyle = "#60a5fa";
+      graphCtx.lineWidth = 3 * devicePixelRatio;
+      graphCtx.stroke();
+    }
+
+    function toggleSim(){
+      const btn = document.getElementById("btn-play");
+      running = !running;
+      btn.textContent = running ? "Pause" : "Play";
+      btn.classList.toggle("paused", !running);
+      document.getElementById("stat-state").textContent = running ? "Running" : "Paused";
+      if(running) loop();
+      else cancelAnimationFrame(simFrame);
+    }
+
+    function loop(){
+      if(!running) return;
+      const p = getParams();
+      for(let i=0;i<p.sp;i++) stepSim();
+      simFrame = requestAnimationFrame(loop);
+    }
+
+    function exportData(){
+      let csv = "index,temperature\n";
+      T.forEach((t,i)=> csv += `${i},${t.toFixed(3)}\n`);
+      const blob = new Blob([csv], {type:"text/csv"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "heat_conduction_data.csv";
+      a.click();
+    }
+
+    function submitFeedback(){
+      const name = document.getElementById("fb-name").value.trim();
+      const msg = document.getElementById("fb-msg").value.trim();
+      if(name && msg){
+        document.getElementById("fb-status").textContent = `Thank you, ${name}! Your feedback has been submitted successfully.`;
+      } else {
+        document.getElementById("fb-status").textContent = "Please enter your name and feedback before submitting.";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => { buildQuiz("pretest"); buildQuiz("posttest"); });
+  </script>
+</body>
+</html>
