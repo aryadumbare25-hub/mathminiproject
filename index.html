@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heat Conduction Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="particle-bg"></canvas>
+
+  <header class="header">
+    <div class="logo-wrap">
+      <img class="logo-img" src="https://raw.githubusercontent.com/dineshkute90/virtuallab_LAUC/main/pccoe.png" alt="PCCOE Logo" onerror="this.style.display='none'">
+      <div class="logo-text">
+        <span class="logo-name">PCCOE Virtual Labs</span>
+        <span class="logo-sub">Applied Sciences & Humanities</span>
+      </div>
+    </div>
+    <nav>
+      <a href="#" class="active" id="nav-aim" onclick="showSection('aim')">Aim</a>
+      <a href="#" id="nav-theory" onclick="showSection('theory')">Theory</a>
+      <a href="#" id="nav-pretest" onclick="showSection('pretest')">Pretest</a>
+      <a href="#" id="nav-simulation" onclick="showSection('simulation')">Simulation</a>
+      <a href="#" id="nav-posttest" onclick="showSection('posttest')">Posttest</a>
+      <a href="#" id="nav-references" onclick="showSection('references')">References</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-badge">Engineering Mathematics Experiment 04</div>
+    <h1><span class="fire">Heat</span> <span class="label">Conduction</span><br><span class="label">in</span> <span class="ice">Metal Rod</span></h1>
+    <p class="hero-desc">Watch thermal energy flow in real time. Explore Fourier’s Law, finite-difference physics, and steady-state equilibrium through a fully interactive simulation.</p>
+    <div class="college-strip">
+      <img src="https://raw.githubusercontent.com/dineshkute90/virtuallab_LAUC/main/pccoe.png" alt="PCCOE" onerror="this.style.display='none'">
+      Pimpri Chinchwad College of Engineering &nbsp;&nbsp;|&nbsp;&nbsp; ASH Dept &nbsp;&nbsp;|&nbsp;&nbsp; 2025
+    </div>
+  </section>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="showSection('aim')">01 Aim</button>
+    <button class="tab" onclick="showSection('theory')">02 Theory</button>
+    <button class="tab" onclick="showSection('pretest')">03 Pretest</button>
+    <button class="tab" onclick="showSection('simulation')">04 Simulation</button>
+    <button class="tab" onclick="showSection('posttest')">05 Posttest</button>
+    <button class="tab" onclick="showSection('references')">06 References</button>
+  </div>
+
+  <section id="aim" class="section active">
+    <div class="section-title">Aim of the Experiment</div>
+    <div class="section-sub">objective • scope • learning outcomes</div>
+
+    <div class="card">
+      <h3>Primary Objective</h3>
+      <p>To study and simulate heat conduction along a metal rod, verify Fourier’s Law of Heat Conduction, and analyse steady-state temperature distribution through interactive numerical modelling.</p>
+    </div>
+  </section>
+
+  <section id="theory" class="section">
+    <div class="section-title">Theory</div>
+    <div class="section-sub">background equations • concepts</div>
+
+    <div class="card">
+      <h3>What is Heat Conduction?</h3>
+      <p>Heat conduction is the transfer of thermal energy through matter via direct particle-to-particle interaction without bulk movement of the material. It occurs whenever a temperature gradient exists across a solid or stationary fluid.</p>
+    </div>
+
+    <div class="card">
+      <h3>Fourier’s Law</h3>
+      <div class="formula-box">Q = -kA(dT/dx)</div>
+      <p>The negative sign indicates that heat flows from hot to cold regions.</p>
+    </div>
+
+    <div class="card">
+      <h3>Transient Heat Equation</h3>
+      <div class="formula-box">∂T/∂t = α ∂²T/∂x²</div>
+      <p>In steady state, temperature becomes linear along the rod.</p>
+    </div>
+  </section>
+
+  <section id="pretest" class="section">
+    <div class="section-title">Pretest</div>
+    <div class="section-sub">assess your knowledge before the experiment</div>
+    <div id="pretest-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-play" onclick="submitQuiz('pretest')">Submit Answers</button>
+      <button class="btn btn-outline" onclick="resetQuiz('pretest')">Reset</button>
+    </div>
+    <div class="quiz-result" id="pretest-result"></div>
+  </section>
+
+  <section id="simulation" class="section">
+    <div class="section-title">Heat Conduction Simulation</div>
+    <div class="section-sub">interactive • real-time physics • finite difference model</div>
+
+    <div class="card">
+      <h3>Choose Your Material</h3>
+      <div class="material-grid" id="material-grid">
+        <button class="mat-btn active" onclick="selectMaterial(this,'Copper',401)">Copper</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Silver',429)">Silver</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Aluminium',237)">Aluminium</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Steel',50)">Steel</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Glass',1)">Glass</button>
+        <button class="mat-btn" onclick="selectMaterial(this,'Custom',100)" id="custom-mat-btn">Custom</button>
+      </div>
+
+      <div class="mat-info-banner">
+        <span class="mat-info-name" id="mat-info-name">Copper</span>
+        <div class="mat-info-stats">
+          <span><strong id="mat-info-k">401</strong> W/mK</span>
+          <span id="mat-info-use">Best for electronics heat sinks</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-wrapper">
+      <div class="rod-header">
+        <div class="end-label hot">
+          <span class="end-name">Hot End</span>
+          <span class="temp-val" id="lbl-hot">300</span>
+          <span style="font-family:JetBrains Mono,monospace;font-size:.65rem;color:var(--muted)">°C</span>
+        </div>
+
+        <div class="thermal-meter">
+          <div class="meter-bar">
+            <div class="meter-needle" id="meter-needle"></div>
+          </div>
+          <span>Midpoint Temperature</span>
+        </div>
+
+        <div class="end-label cold" style="text-align:right;">
+          <span class="end-name">Cold End</span>
+          <span class="temp-val" id="lbl-cold">20</span>
+          <span style="font-family:JetBrains Mono,monospace;font-size:.65rem;color:var(--muted)">°C</span>
+        </div>
+      </div>
+
+      <div class="rod-area">
+        <div class="rod-glow-left" id="glow-left"></div>
+        <canvas id="rod-canvas" height="90"></canvas>
+        <div class="rod-glow-right" id="glow-right"></div>
+      </div>
+      <div class="click-hint">Hover over the rod to read temperature at any point • Click to add a heat pulse!</div>
+      <canvas id="temp-graph" height="120"></canvas>
+
+      <div class="equilibrium-bar-wrap">
+        <div class="equilibrium-label">
+          <span>Approach to Steady State</span>
+          <span id="equil-pct">0%</span>
+        </div>
+        <div class="equilibrium-bar-bg">
+          <div class="equilibrium-bar-fill" id="equil-bar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="steady-badge" id="steady-badge">
+        <div class="steady-dot"></div>
+        Steady state reached — temperature profile is now linear.
+      </div>
+
+      <div class="sim-controls">
+        <div class="ctrl-group">
+          <label>Thermal Conductivity k <span class="lbl-val" id="lbl-k">401</span> W/mK</label>
+          <input type="range" id="sl-k" min="1" max="500" value="401" oninput="updateSim()">
+        </div>
+        <div class="ctrl-group">
+          <label>Hot End Temperature <span class="lbl-val" id="lbl-th">300</span> °C</label>
+          <input type="range" id="sl-th" min="50" max="800" value="300" oninput="updateSim()">
+        </div>
+        <div class="ctrl-group">
+          <label>Cold End Temperature <span class="lbl-val" id="lbl-tc">20</span> °C</label>
+          <input type="range" id="sl-tc" min="0" max="200" value="20" oninput="updateSim()">
+        </div>
+        <div class="ctrl-group">
+          <label>Simulation Speed <span class="lbl-val" id="lbl-sp">5</span>x</label>
+          <input type="range" id="sl-sp" min="1" max="20" value="5" oninput="updateSim()">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-play paused" id="btn-play" onclick="toggleSim()">Play</button>
+        <button class="btn btn-outline" onclick="stepSim()">Step</button>
+        <button class="btn btn-danger" onclick="resetSim()">Reset</button>
+        <button class="btn btn-outline" onclick="exportData()">Export CSV</button>
+      </div>
+
+      <div class="sim-stats">
+        <div class="stat-chip">Elapsed Time <span class="stat-val accent-stat" id="stat-t">0.000 s</span></div>
+        <div class="stat-chip">Midpoint Temp <span class="stat-val" id="stat-mid">0 °C</span></div>
+        <div class="stat-chip">Heat Flux Q <span class="stat-val hot-stat" id="stat-q">0 W/m²</span></div>
+        <div class="stat-chip">State <span class="stat-val" id="stat-state">Paused</span></div>
+      </div>
+    </div>
+
+    <div class="fact-ticker" id="fact-ticker">
+      <span class="fact-icon">💡</span>
+      <div class="fact-text-wrap">
+        <span class="fact-text" id="fact-text">Did you know? Copper conducts heat 8x faster than Steel!</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="posttest" class="section">
+    <div class="section-title">Posttest</div>
+    <div class="section-sub">verify your understanding after the simulation</div>
+    <div id="posttest-questions"></div>
+    <div class="btn-row">
+      <button class="btn btn-play" onclick="submitQuiz('posttest')">Submit Answers</button>
+      <button class="btn btn-outline" onclick="resetQuiz('posttest')">Reset</button>
+    </div>
+    <div class="quiz-result" id="posttest-result"></div>
+  </section>
+
+  <section id="references" class="section">
+    <div class="section-title">References</div>
+    <div class="section-sub">bibliography • further reading</div>
+    <div class="ref-item"><span class="ref-num">1</span><div class="ref-info"><h4>Cengel & Ghajar, Heat and Mass Transfer</h4><p>5th Edition, McGraw-Hill, 2015. Chapters 2–3: Steady and Transient Heat Conduction.</p></div></div>
+    <div class="ref-item"><span class="ref-num">2</span><div class="ref-info"><h4>Fourier, J.B.J. Théorie Analytique de la Chaleur</h4><p>Paris, 1822. Original derivation of the heat equation and Fourier’s Law of conduction.</p></div></div>
+    <div class="ref-item"><span class="ref-num">3</span><div class="ref-info"><h4>Incropera et al., Fundamentals of Heat and Mass Transfer</h4><p>7th Edition, Wiley, 2011. Industry reference standard for thermal analysis and design.</p></div></div>
+    <div class="ref-item"><span class="ref-num">4</span><div class="ref-info"><h4>NPTEL Lectures: Heat Transfer</h4><p>nptel.ac.in — Free online course on conduction, convection, and radiation for engineers.</p></div></div>
+    <div class="ref-item"><span class="ref-num">5</span><div class="ref-info"><h4>Virtual Labs Initiative</h4><p>vlab.co.in — India's national virtual labs platform for engineering science experiments.</p></div></div>
+    <div class="ref-item"><span class="ref-num">6</span><div class="ref-info"><h4>Pimpri Chinchwad College of Engineering</h4><p>pccoe.org — Department of Applied Sciences & Humanities, Engineering Mathematics curriculum, 2025.</p></div></div>
+  </section>
+
+  <footer>
+    <div class="footer-brand">
+      <img src="https://raw.githubusercontent.com/dineshkute90/virtuallab_LAUC/main/pccoe.png" alt="PCCOE" onerror="this.style.display='none'">
+      <div class="footer-text">Pimpri Chinchwad College of Engineering<br><span style="opacity:.5;">Applied Sciences & Humanities | Heat Conduction Module 2025</span></div>
+    </div>
+    <div class="footer-right">Virtual Labs Platform<br><span style="opacity:.5;">Engineering Mathematics Experiment 04</span></div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
