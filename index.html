@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Heat Conduction Lab — PCCOE Virtual Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --hot:#ff4500;--hot2:#ff8c00;--hot3:#ffd700;
+  --cold:#00b4d8;--cold2:#0077b6;--cold3:#90e0ef;
+  --bg:#05070e;--surface:#0b0f1a;--card:#0f1521;--card2:#141c2e;
+  --border:#1a2236;--border2:#243050;
+  --text:#e8f0ff;--muted:#5a6a8a;--muted2:#7a8eae;
+  --accent:#fbbf24;--accent2:#f59e0b;
+  --green:#10b981;--red:#ef4444;--blue:#60a5fa;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* NOISE OVERLAY */
+body::before{content:"";position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:500;background:rgba(5,7,14,.92);backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid var(--border);padding:0 2.5rem;height:68px;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.logo-wrap{display:flex;align-items:center;gap:.9rem;flex-shrink:0}
+.logo-circle{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--hot2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:0 0 20px rgba(251,191,36,.3)}
+.logo-text .ln{font-size:.82rem;font-weight:700;color:var(--accent);letter-spacing:.08em}
+.logo-text .ls{font-size:.62rem;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.05em}
+nav{display:flex;gap:.1rem;flex-wrap:wrap;justify-content:flex-end}
+nav a{color:var(--muted2);text-decoration:none;font-size:.72rem;font-family:'JetBrains Mono',monospace;padding:.38rem .7rem;border-radius:7px;transition:.2s;white-space:nowrap;letter-spacing:.02em}
+nav a:hover,nav a.active{color:var(--accent);background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2)}
+nav a{border:1px solid transparent}
+
+/* TAB BAR */
+.tab-bar{display:flex;gap:.5rem;padding:1rem 2.5rem;overflow-x:auto;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:68px;z-index:400;scrollbar-width:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;background:none;border:1px solid var(--border);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.7rem;padding:.45rem 1.1rem;border-radius:8px;cursor:pointer;transition:.25s;letter-spacing:.04em}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#05070e;font-weight:700;box-shadow:0 0 24px rgba(251,191,36,.3)}
+.tab:hover:not(.active){border-color:var(--muted2);color:var(--text)}
+
+/* SECTIONS */
+.section{display:none;padding:3rem 2.5rem;max-width:1060px;margin:0 auto;position:relative;z-index:1}
+.section.active{display:block;animation:fadeUp .45s cubic-bezier(.16,1,.3,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.pg-title{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:900;letter-spacing:-.02em;margin-bottom:.3rem;line-height:1.1}
+.pg-sub{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2.8rem}
+
+/* HERO */
+.hero{min-height:calc(100vh - 130px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;pointer-events:none}
+.hero-bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.18}
+.orb-fire{width:500px;height:500px;background:radial-gradient(circle,var(--hot) 0,transparent 70%);left:-100px;top:50%;transform:translateY(-50%)}
+.orb-ice{width:500px;height:500px;background:radial-gradient(circle,var(--cold) 0,transparent 70%);right:-100px;top:50%;transform:translateY(-50%)}
+.orb-gold{width:300px;height:300px;background:radial-gradient(circle,var(--accent) 0,transparent 70%);left:50%;top:10%;transform:translateX(-50%)}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.66rem;padding:.38rem 1rem;border-radius:20px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:2rem;position:relative}
+.hero-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(3rem,8vw,6rem);font-weight:900;line-height:1.02;margin-bottom:1.4rem;letter-spacing:-.02em;position:relative}
+.hero h1 .fire{background:linear-gradient(135deg,var(--hot),var(--hot2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero h1 .ice{background:linear-gradient(135deg,var(--cold3),var(--cold),var(--cold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-desc{color:var(--muted2);max-width:560px;margin:0 auto 2.5rem;font-size:1.05rem;line-height:1.75;position:relative}
+.hero-stats{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem;position:relative}
+.hstat{text-align:center}
+.hstat .val{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:var(--accent);line-height:1}
+.hstat .lbl{font-size:.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:.06em;margin-top:.3rem}
+.hero-college{display:inline-flex;align-items:center;gap:.9rem;background:var(--card);border:1px solid var(--border2);padding:.7rem 1.6rem;border-radius:12px;font-size:.78rem;color:var(--muted2);font-family:'JetBrains Mono',monospace;position:relative}
+.cta-btn{display:inline-flex;align-items:center;gap:.6rem;background:linear-gradient(135deg,var(--accent),var(--hot2));color:#05070e;font-weight:700;font-size:.85rem;padding:.75rem 1.8rem;border-radius:10px;border:none;cursor:pointer;transition:.25s;margin-right:.8rem;font-family:'Space Grotesk',sans-serif}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(251,191,36,.35)}
+.cta-outline{display:inline-flex;align-items:center;gap:.6rem;background:none;color:var(--text);font-weight:600;font-size:.85rem;padding:.75rem 1.8rem;border-radius:10px;border:1px solid var(--border2);cursor:pointer;transition:.25s;font-family:'Space Grotesk',sans-serif}
+.cta-outline:hover{border-color:var(--accent);color:var(--accent)}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:2.5rem 0}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.8rem;margin-bottom:1.4rem;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(251,191,36,.4),transparent)}
+.card h3{font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:.9rem;display:flex;align-items:center;gap:.6rem}
+.card h3 .icon{font-size:1.2rem}
+.card p,.card li{color:var(--muted2);font-size:.9rem;line-height:1.8}
+.card ul{padding-left:1.3rem;display:flex;flex-direction:column;gap:.4rem}
+.card ul li::marker{color:var(--accent)}
+
+/* AIM */
+.aim-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem}
+.aim-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;transition:.3s;cursor:default}
+.aim-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.aim-icon{font-size:2.2rem;margin-bottom:.8rem}
+.aim-title{font-weight:700;color:var(--text);margin-bottom:.5rem}
+.aim-desc{color:var(--muted2);font-size:.85rem;line-height:1.7}
+.lo-list{display:flex;flex-direction:column;gap:.6rem;margin-top:.6rem}
+.lo-item{display:flex;align-items:flex-start;gap:.8rem;padding:.75rem 1rem;background:var(--card2);border:1px solid var(--border);border-radius:10px;font-size:.85rem;color:var(--muted2);line-height:1.6}
+.lo-num{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);padding:.15rem .5rem;border-radius:5px;flex-shrink:0;margin-top:.1rem}
+
+/* THEORY */
+.formula-big{background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(255,69,0,.04));border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:1.4rem 2rem;text-align:center;font-family:'JetBrains Mono',monospace;font-size:1.3rem;color:var(--accent);margin:1rem 0;letter-spacing:.04em}
+.formula-parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.8rem;margin:.9rem 0}
+.fp{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;text-align:center}
+.fp .sym{font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--accent);font-weight:700}
+.fp .desc{font-size:.72rem;color:var(--muted2);margin-top:.3rem}
+.theory-visual{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin:1rem 0}
+.conductivity-bar-wrap{display:flex;flex-direction:column;gap:.6rem}
+.cbar-row{display:flex;align-items:center;gap.8rem;gap:.8rem}
+.cbar-label{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted2);width:90px;flex-shrink:0}
+.cbar-track{flex:1;height:12px;background:var(--border);border-radius:6px;overflow:hidden;position:relative}
+.cbar-fill{height:100%;border-radius:6px;transition:width 1s cubic-bezier(.16,1,.3,1)}
+.cbar-val{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);width:70px;text-align:right;flex-shrink:0}
+.steps-list{display:flex;flex-direction:column;gap:.8rem;margin:.8rem 0}
+.step-item{display:flex;gap:1rem;align-items:flex-start;padding:.9rem 1.1rem;background:var(--card2);border:1px solid var(--border);border-radius:10px}
+.step-num{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:700;color:var(--accent);width:28px;flex-shrink:0}
+.step-text{font-size:.88rem;color:var(--muted2);line-height:1.7}
+
+/* QUIZ */
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;margin-bottom:1.2rem}
+.q-num{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--accent);background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);border-radius:5px;padding:.15rem .55rem;display:inline-block;margin-bottom:.8rem}
+.q-text{font-weight:600;color:var(--text);font-size:.95rem;margin-bottom:1rem;line-height:1.55}
+.opts-list{display:flex;flex-direction:column;gap:.5rem}
+.opt{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border2);border-radius:10px;cursor:pointer;transition:.2s;font-size:.88rem;color:var(--muted2);user-select:none}
+.opt:hover{border-color:var(--accent);color:var(--text);background:rgba(251,191,36,.04)}
+.opt.sel{border-color:var(--accent);background:rgba(251,191,36,.07);color:var(--text)}
+.opt.correct{border-color:var(--green);background:rgba(16,185,129,.08);color:var(--green)}
+.opt.wrong{border-color:var(--red);background:rgba(239,68,68,.07);color:var(--red)}
+.opt-letter{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;color:var(--accent);width:20px;flex-shrink:0}
+.hint-box{background:rgba(251,191,36,.04);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:.75rem 1rem;font-size:.82rem;color:var(--muted2);line-height:1.7;margin-top:.8rem;display:none}
+.hint-box.show{display:block;animation:fadeUp .3s ease}
+.hint-box .hl{color:var(--accent);font-weight:600}
+.exp-box{background:rgba(16,185,129,.06);border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:.75rem 1rem;font-size:.82rem;color:#6ee7b7;line-height:1.7;margin-top:.8rem;display:none}
+.exp-box.show{display:block}
+.quiz-btn-row{display:flex;gap:.8rem;margin-top:1.4rem;flex-wrap:wrap}
+.qbtn{font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;padding:.65rem 1.5rem;border-radius:9px;cursor:pointer;transition:.2s}
+.qbtn.primary{background:var(--green);border:none;color:#fff}
+.qbtn.primary:hover{background:#0ea371}
+.qbtn.ghost{background:none;border:1px solid var(--border2);color:var(--muted2)}
+.qbtn.ghost:hover{border-color:var(--muted2);color:var(--text)}
+.quiz-score{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;margin-top:1.2rem}
+.score-circle{width:80px;height:80px;border-radius:50%;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--accent);margin:0 auto 1rem}
+
+/* SIMULATION */
+.sim-progress{display:flex;gap:6px;margin-bottom:2rem}
+.sp-dot{height:5px;flex:1;border-radius:3px;background:var(--border2);transition:.4s}
+.sp-dot.done{background:var(--green)}
+.sp-dot.active{background:var(--accent)}
+
+.sim-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.8rem;animation:fadeUp .35s ease}
+.sim-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--accent);background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);border-radius:20px;padding:.25rem .9rem;letter-spacing:.1em;margin-bottom:1rem}
+.sim-q{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:.5rem;line-height:1.5}
+.sim-hint{font-size:.85rem;color:var(--muted2);line-height:1.75;margin-bottom:1rem}
+.sim-formula{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--accent);background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:.6rem 1.1rem;margin:.3rem 0 .9rem}
+.mcq-opts{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
+.mcq-opt{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border2);border-radius:10px;cursor:pointer;transition:.2s;font-size:.88rem;color:var(--muted2)}
+.mcq-opt:hover{border-color:var(--accent);color:var(--text)}
+.mcq-opt.selected{border-color:var(--accent);background:rgba(251,191,36,.07);color:var(--text)}
+.mcq-opt.correct{border-color:var(--green);background:rgba(16,185,129,.08);color:var(--green)}
+.mcq-opt.wrong{border-color:var(--red);background:rgba(239,68,68,.07);color:var(--red)}
+.mcq-opt.show-correct{border-color:var(--green);background:rgba(16,185,129,.08);color:var(--green)}
+.mcq-letter{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;color:var(--accent);width:20px;flex-shrink:0}
+.sim-insight{background:rgba(251,191,36,.04);border-left:3px solid rgba(251,191,36,.5);border-radius:0 8px 8px 0;padding:.75rem 1rem;font-size:.82rem;color:var(--muted2);line-height:1.7;margin:.8rem 0 .6rem;display:none}
+.sim-insight.show{display:block;animation:fadeUp .3s ease}
+.sim-hint-reveal{background:rgba(96,165,250,.06);border-left:3px solid rgba(96,165,250,.5);border-radius:0 8px 8px 0;padding:.75rem 1rem;font-size:.82rem;color:#93c5fd;line-height:1.7;margin:.8rem 0 .6rem;display:none}
+.sim-hint-reveal.show{display:block;animation:fadeUp .3s ease}
+.sim-input-wrap{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.3rem}
+.sim-input{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:.65rem 1rem;font-size:1.1rem;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--text);width:170px;outline:none;transition:.2s}
+.sim-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(251,191,36,.1)}
+.sim-unit{font-size:.85rem;font-family:'JetBrains Mono',monospace;color:var(--muted2)}
+.sim-err{font-size:.78rem;color:var(--red);min-height:18px;font-family:'JetBrains Mono',monospace;margin-top:.3rem}
+.sim-btn-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.2rem;align-items:center}
+.sim-btn{font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;padding:.58rem 1.4rem;border-radius:9px;border:1px solid var(--border2);background:none;color:var(--muted2);cursor:pointer;transition:.2s}
+.sim-btn:hover{border-color:var(--muted2);color:var(--text)}
+.sim-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#05070e}
+.sim-btn.primary:hover{opacity:.88;transform:translateY(-1px)}
+.sim-btn.danger{border-color:rgba(239,68,68,.3);color:var(--red)}
+.sim-btn.danger:hover{background:rgba(239,68,68,.08)}
+
+/* Material grid */
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.7rem;margin:.9rem 0}
+.mat-btn{background:var(--surface);border:1px solid var(--border2);border-radius:11px;padding:.85rem .6rem;cursor:pointer;text-align:center;font-family:'Space Grotesk',sans-serif;font-size:.82rem;color:var(--muted2);transition:.25s;line-height:1.4}
+.mat-btn:hover{border-color:var(--muted2)}
+.mat-btn.sel{border-color:var(--accent);background:rgba(251,191,36,.08);color:var(--accent);font-weight:700}
+.mat-btn small{display:block;font-size:.67rem;font-family:'JetBrains Mono',monospace;margin-top:.25rem;opacity:.75}
+
+/* Live simulation */
+.tag-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.stag{font-size:.7rem;font-family:'JetBrains Mono',monospace;padding:.25rem .7rem;border-radius:6px;border:1px solid var(--border2);color:var(--muted2)}
+.stag b{color:var(--accent)}
+.sim-main-area{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.6rem}
+.rod-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;gap:.8rem;flex-wrap:wrap}
+.end-label{display:flex;flex-direction:column;align-items:center;gap:.15rem;font-family:'JetBrains Mono',monospace;font-size:.68rem}
+.end-label .tv{font-size:1.5rem;font-weight:700;line-height:1}
+.end-label.hot .tv{color:var(--hot)}
+.end-label.cold .tv{color:var(--cold)}
+.mid-meter{display:flex;flex-direction:column;align-items:center;gap:.35rem;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted)}
+.mbar{width:180px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--cold2),var(--cold),#00ffaa,var(--accent),var(--hot2),var(--hot));border:1px solid var(--border);position:relative}
+.mneedle{position:absolute;top:-5px;width:4px;height:18px;background:#fff;border-radius:2px;transform:translateX(-50%);transition:left .5s ease;box-shadow:0 0 6px rgba(255,255,255,.5)}
+.rod-wrap{position:relative;margin:.6rem 0}
+.rod-glow-l,.rod-glow-r{position:absolute;top:50%;transform:translateY(-50%);width:60px;height:60px;border-radius:50%;filter:blur(12px);pointer-events:none;opacity:.3}
+.rod-glow-l{left:-10px;background:radial-gradient(circle,var(--hot) 0,transparent 70%)}
+.rod-glow-r{right:-10px;background:radial-gradient(circle,var(--cold) 0,transparent 70%)}
+#rod-canvas{width:100%;height:90px;border-radius:12px;display:block;cursor:crosshair}
+#temp-graph{border-radius:10px;border:1px solid var(--border);background:var(--card);width:100%;margin-top:.6rem}
+.click-hint{text-align:center;font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:.5rem}
+.controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:1.6rem}
+.ctrl-group label{display:flex;justify-content:space-between;font-size:.7rem;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em}
+.ctrl-group label .lv{color:var(--accent);font-weight:700}
+input[type="range"]{-webkit-appearance:none;width:100%;height:5px;background:var(--border);border-radius:3px;outline:none;cursor:pointer}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px rgba(251,191,36,.4)}
+.sim-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.7rem;margin-top:1.2rem}
+.stat-chip{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:.8rem 1rem;font-family:'JetBrains Mono',monospace;font-size:.61rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.stat-chip .sv{font-size:1rem;font-weight:700;color:var(--text);display:block;margin-top:.25rem;font-family:'Space Grotesk',sans-serif}
+.stat-chip .sv.a{color:var(--accent)}
+.stat-chip .sv.h{color:var(--hot)}
+.stat-chip .sv.g{color:var(--green)}
+.equil-row{display:flex;justify-content:space-between;font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-top:1rem}
+.equil-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:.35rem 0 .6rem}
+.equil-fill{height:100%;background:linear-gradient(90deg,var(--cold2),var(--green));border-radius:3px;transition:width .4s ease}
+.ss-badge{display:none;align-items:center;gap:.55rem;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:9px;padding:.5rem 1rem;font-size:.78rem;color:var(--green);font-family:'JetBrains Mono',monospace;margin-bottom:.6rem}
+.ss-badge.show{display:flex;animation:fadeUp .4s ease}
+.ss-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+.fact-ticker{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:.65rem 1rem;margin-top:1rem;font-size:.78rem;color:var(--muted2);display:flex;align-items:center;gap:.8rem}
+.temp-tooltip{position:absolute;background:rgba(15,21,33,.95);border:1px solid var(--border2);border-radius:8px;padding:.4rem .75rem;font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text);pointer-events:none;display:none;z-index:10;transform:translateX(-50%)}
+
+/* TEAM & FACULTY */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:1.4rem}
+.team-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;text-align:center;transition:.3s}
+.team-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+.team-avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--hot2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto .8rem}
+.team-id{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--accent);margin-bottom:.3rem}
+.team-name{font-weight:600;font-size:.92rem}
+
+/* REFERENCES */
+.ref-item{display:flex;align-items:flex-start;gap:1rem;padding:1.1rem 1.3rem;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:.9rem;transition:.2s}
+.ref-item:hover{border-color:var(--border2)}
+.ref-num{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--accent);background:rgba(251,191,36,.1);padding:.22rem .6rem;border-radius:5px;flex-shrink:0;margin-top:.1rem}
+.ref-title{font-weight:600;font-size:.9rem;margin-bottom:.3rem}
+.ref-desc{color:var(--muted2);font-size:.82rem;line-height:1.6}
+
+/* FEEDBACK */
+.fb-group{margin-bottom:1.1rem}
+.fb-label{display:block;margin-bottom:.4rem;color:var(--accent);font-size:.78rem;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase}
+.fb-input,.fb-select,.fb-textarea{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:.8rem 1rem;font-family:'Space Grotesk',sans-serif;font-size:.9rem;outline:none;transition:.2s}
+.fb-input:focus,.fb-select:focus,.fb-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(251,191,36,.1)}
+.fb-select option{background:var(--card)}
+.star-row{display:flex;gap:.5rem;margin-bottom:.3rem}
+.star{font-size:1.8rem;cursor:pointer;color:var(--border2);transition:.2s;user-select:none}
+.star.active{color:var(--accent)}
+.star:hover{color:var(--accent);transform:scale(1.15)}
+
+/* THANKS */
+.thanks-wrap{text-align:center;padding:3rem 0}
+.thanks-icon{font-size:4rem;margin-bottom:1rem}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap;gap:1.2rem;z-index:1;position:relative}
+.footer-brand{display:flex;align-items:center;gap:.9rem}
+.footer-circle{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--hot2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1rem}
+.footer-text,.footer-right{font-size:.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.7}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .header{height:auto;padding:1rem;flex-direction:column;gap:.75rem}
+  .section{padding:2rem 1rem}
+  .aim-grid{grid-template-columns:1fr}
+  .controls-grid{grid-template-columns:1fr}
+  nav a{font-size:.66rem;padding:.32rem .55rem}
+  footer{flex-direction:column;padding:1.5rem}
+  .hero h1{font-size:2.8rem}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo-wrap">
+    <div class="logo-circle">🔥</div>
+    <div class="logo-text">
+      <div class="ln">PCCOE Virtual Labs</div>
+      <div class="ls">Applied Sciences & Humanities</div>
+    </div>
+  </div>
+  <nav id="main-nav">
+    <a href="#" class="active" onclick="showSection('home');return false">Home</a>
+    <a href="#" onclick="showSection('aim');return false">Aim</a>
+    <a href="#" onclick="showSection('theory');return false">Theory</a>
+    <a href="#" onclick="showSection('pretest');return false">Pretest</a>
+    <a href="#" onclick="showSection('simulation');return false">Simulation</a>
+    <a href="#" onclick="showSection('posttest');return false">Posttest</a>
+    <a href="#" onclick="showSection('team');return false">Team</a>
+    <a href="#" onclick="showSection('faculty');return false">Faculty</a>
+    <a href="#" onclick="showSection('feedback');return false">Feedback</a>
+    <a href="#" onclick="showSection('references');return false">References</a>
+    <a href="#" onclick="showSection('thanks');return false">Thanks</a>
+  </nav>
+</header>
+
+<div class="tab-bar" id="tab-bar">
+  <button class="tab active" onclick="showSection('home')">🏠 Home</button>
+  <button class="tab" onclick="showSection('aim')">🎯 Aim</button>
+  <button class="tab" onclick="showSection('theory')">📚 Theory</button>
+  <button class="tab" onclick="showSection('pretest')">✏️ Pretest</button>
+  <button class="tab" onclick="showSection('simulation')">⚗️ Simulation</button>
+  <button class="tab" onclick="showSection('posttest')">📝 Posttest</button>
+  <button class="tab" onclick="showSection('team')">👥 Team</button>
+  <button class="tab" onclick="showSection('faculty')">🎓 Faculty</button>
+  <button class="tab" onclick="showSection('feedback')">💬 Feedback</button>
+  <button class="tab" onclick="showSection('references')">📖 References</button>
+  <button class="tab" onclick="showSection('thanks')">🙏 Thanks</button>
+</div>
+
+<!-- ==================== HOME ==================== -->
+<section id="sec-home" class="section active">
+  <div class="hero">
+    <div class="hero-bg">
+      <div class="orb orb-fire"></div>
+      <div class="orb orb-ice"></div>
+      <div class="orb orb-gold"></div>
+    </div>
+    <div class="hero-badge">Engineering Mathematics — Experiment 04</div>
+    <h1><span class="fire">Heat</span> Conduction<br>in a <span class="ice">Metal Rod</span></h1>
+    <p class="hero-desc">Watch thermal energy flow in real time. Explore Fourier's Law, finite-difference physics, and steady-state equilibrium through a fully interactive simulation.</p>
+    <div class="hero-stats">
+      <div class="hstat"><div class="val">6</div><div class="lbl">Guided Steps</div></div>
+      <div class="hstat"><div class="val">10</div><div class="lbl">Quiz Questions</div></div>
+      <div class="hstat"><div class="val">5</div><div class="lbl">Materials</div></div>
+      <div class="hstat"><div class="val">100</div><div class="lbl">Sim Nodes</div></div>
+    </div>
+    <div style="margin-bottom:2.5rem">
+      <button class="cta-btn" onclick="showSection('simulation')">⚗️ Start Simulation</button>
+      <button class="cta-outline" onclick="showSection('theory')">📚 Read Theory</button>
+    </div>
+    <div class="hero-college">
+      🏛️ &nbsp; Pimpri Chinchwad College of Engineering &nbsp;|&nbsp; ASH Dept &nbsp;|&nbsp; 2025
+    </div>
+  </div>
+</section>
+
+<!-- ==================== AIM ==================== -->
+<section id="sec-aim" class="section">
+  <div class="pg-title">Aim of the Experiment</div>
+  <div class="pg-sub">Objective · Scope · Learning Outcomes · Applications</div>
+
+  <div class="aim-grid">
+    <div class="aim-card">
+      <div class="aim-icon">🎯</div>
+      <div class="aim-title">Primary Objective</div>
+      <div class="aim-desc">To study and simulate steady-state and transient heat conduction along a metal rod, verify Fourier's Law numerically, and analyse temperature distribution through finite-difference modelling.</div>
+    </div>
+    <div class="aim-card">
+      <div class="aim-icon">🔬</div>
+      <div class="aim-title">Scientific Method</div>
+      <div class="aim-desc">Employ a step-by-step guided inquiry approach — predict, simulate, observe, and compare — to build deep intuition for thermal physics beyond rote formula application.</div>
+    </div>
+    <div class="aim-card">
+      <div class="aim-icon">🧮</div>
+      <div class="aim-title">Mathematical Foundation</div>
+      <div class="aim-desc">Apply Engineering Mathematics concepts — partial differential equations, boundary conditions, and the finite-difference method — to a real-world heat transfer problem.</div>
+    </div>
+    <div class="aim-card">
+      <div class="aim-icon">🏭</div>
+      <div class="aim-title">Real-world Relevance</div>
+      <div class="aim-desc">Connect simulation findings to industrial applications: heat sinks in electronics, furnace design, building insulation, and material selection for thermal management.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">📋</span> Learning Outcomes</h3>
+    <div class="lo-list">
+      <div class="lo-item"><span class="lo-num">LO 1</span>Understand how thermal energy moves from hot regions to cold regions through lattice vibrations and free electron movement.</div>
+      <div class="lo-item"><span class="lo-num">LO 2</span>Apply Fourier's Law Q = −kA(dT/dx) to predict heat flux for given material and boundary conditions.</div>
+      <div class="lo-item"><span class="lo-num">LO 3</span>Observe the effect of thermal conductivity (k) on diffusion speed — and compare across materials like Copper, Steel, and Glass.</div>
+      <div class="lo-item"><span class="lo-num">LO 4</span>Identify steady state conditions and verify that the temperature profile becomes linear at equilibrium.</div>
+      <div class="lo-item"><span class="lo-num">LO 5</span>Use the explicit finite-difference method to numerically solve the 1D heat equation with Dirichlet boundary conditions.</div>
+      <div class="lo-item"><span class="lo-num">LO 6</span>Interpret a temperature-position graph and relate features (slope, midpoint value) to physical quantities like heat flux and boundary temperatures.</div>
+      <div class="lo-item"><span class="lo-num">LO 7</span>Evaluate the impact of heat pulses on a rod and observe transient redistribution before a new steady state is reached.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">⚡</span> Industrial Applications</h3>
+    <p>The principles explored in this experiment directly apply to: CPU heat sinks (copper fins rapidly conducting heat away from processors), furnace and kiln wall design (insulating materials with low k), building energy efficiency (double-glazed windows exploiting the low k of glass), soldering and welding (controlling heat spread in metal joints), and cryogenic engineering (preventing heat leakage into liquid nitrogen storage).</p>
+  </div>
+</section>
+
+<!-- ==================== THEORY ==================== -->
+<section id="sec-theory" class="section">
+  <div class="pg-title">Theory</div>
+  <div class="pg-sub">Background · Equations · Concepts · Numerical Methods</div>
+
+  <div class="card">
+    <h3><span class="icon">🌡️</span> What is Heat Conduction?</h3>
+    <p>Heat conduction is the transfer of thermal energy through a material by direct particle-to-particle interaction — without any bulk movement of the substance itself. In metals, this occurs via two mechanisms: <strong style="color:var(--text)">lattice vibrations</strong> (phonons) where neighbouring atoms pass kinetic energy along, and <strong style="color:var(--text)">free electron diffusion</strong> where conduction electrons carry energy much faster, explaining why metals are far better conductors than non-metals.</p>
+    <p style="margin-top:.7rem">A temperature gradient — a difference in temperature across a distance — is the sole driving force for conduction. Without it, there is no net heat flow.</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">📐</span> Fourier's Law of Heat Conduction</h3>
+    <div class="formula-big">Q = −k · A · (dT/dx)</div>
+    <div class="formula-parts">
+      <div class="fp"><div class="sym">Q</div><div class="desc">Heat flux (W/m²) — rate of heat transfer per unit area</div></div>
+      <div class="fp"><div class="sym">k</div><div class="desc">Thermal conductivity (W/m·K) — material property</div></div>
+      <div class="fp"><div class="sym">A</div><div class="desc">Cross-sectional area (m²) — perpendicular to flow</div></div>
+      <div class="fp"><div class="sym">dT/dx</div><div class="desc">Temperature gradient (K/m) — driving force</div></div>
+      <div class="fp"><div class="sym">−</div><div class="desc">Negative sign: heat flows opposite to gradient direction</div></div>
+    </div>
+    <p>The <strong style="color:var(--text)">negative sign</strong> is crucial: it enforces that heat flows from high to low temperature (the direction of decreasing temperature). If dT/dx is negative (temperature falls as x increases), Q is positive (heat flows in +x direction).</p>
+    <p style="margin-top:.6rem">For a rod of length L with ends at T_hot and T_cold in steady state, this simplifies to: <strong style="color:var(--accent)">Q = k × (T_hot − T_cold) / L</strong></p>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">⏱️</span> Transient Heat Equation</h3>
+    <div class="formula-big">∂T/∂t = α · ∂²T/∂x²</div>
+    <div class="formula-parts">
+      <div class="fp"><div class="sym">∂T/∂t</div><div class="desc">Rate of temperature change over time</div></div>
+      <div class="fp"><div class="sym">α</div><div class="desc">Thermal diffusivity = k/(ρ·c_p) in m²/s</div></div>
+      <div class="fp"><div class="sym">∂²T/∂x²</div><div class="desc">Spatial curvature of the temperature profile</div></div>
+    </div>
+    <p>This is a second-order parabolic PDE describing how temperature evolves in space and time. At <strong style="color:var(--text)">steady state</strong>, ∂T/∂t = 0, which means ∂²T/∂x² = 0, implying the temperature profile is <strong style="color:var(--accent)">perfectly linear</strong> from hot end to cold end.</p>
+    <p style="margin-top:.6rem"><strong style="color:var(--text)">Thermal diffusivity α</strong> = k/(ρ·c_p) combines conductivity with the material's ability to store heat. High α means the material responds quickly to temperature changes.</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">🖥️</span> Finite Difference Method</h3>
+    <p>The rod is divided into N equally-spaced <strong style="color:var(--text)">nodes</strong>. The explicit finite-difference approximation updates each interior node each time step using its neighbours:</p>
+    <div class="formula-big">T_i^(n+1) = T_i^n + r·(T_{i-1}^n − 2T_i^n + T_{i+1}^n)</div>
+    <div class="formula-parts">
+      <div class="fp"><div class="sym">r</div><div class="desc">r = α·Δt/Δx² — stability parameter</div></div>
+      <div class="fp"><div class="sym">Δt</div><div class="desc">Time step size (must keep r ≤ 0.5)</div></div>
+      <div class="fp"><div class="sym">Δx</div><div class="desc">Spatial step = L/N</div></div>
+    </div>
+    <p><strong style="color:var(--red)">Stability condition:</strong> r ≤ 0.5 must always hold. If violated, the solution oscillates and diverges. Our simulation automatically clamps α to satisfy this.</p>
+    <div class="steps-list">
+      <div class="step-item"><span class="step-num">01</span><div class="step-text">Set boundary conditions: T[0] = T_hot and T[N-1] = T_cold at all times (Dirichlet BCs).</div></div>
+      <div class="step-item"><span class="step-num">02</span><div class="step-text">Initialise the interior nodes — we start with a linear guess to reduce transient time.</div></div>
+      <div class="step-item"><span class="step-num">03</span><div class="step-text">At each time step, compute new T[i] using the update rule above for i = 1 to N-2.</div></div>
+      <div class="step-item"><span class="step-num">04</span><div class="step-text">Re-apply boundary conditions after every step to keep endpoints fixed.</div></div>
+      <div class="step-item"><span class="step-num">05</span><div class="step-text">Repeat until the maximum temperature change per step falls below a threshold (steady state).</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">⚙️</span> Thermal Conductivity of Common Materials</h3>
+    <div class="theory-visual">
+      <div class="conductivity-bar-wrap" id="cbar-wrap"></div>
+    </div>
+    <p>Notice the enormous range — from Silver (429 W/m·K) to Glass (≈1 W/m·K). This is why copper is used in heat sinks and glass in window insulation. The conductivity k determines how fast the thermal front propagates and how steep the temperature gradient becomes at steady state.</p>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">🔁</span> Steady State vs. Transient</h3>
+    <p><strong style="color:var(--text)">Transient phase:</strong> The rod temperature profile is nonlinear and evolving. Heat diffuses inward from the hot end, and cold spreads from the cold end. The rate of this diffusion depends on α.</p>
+    <p style="margin-top:.6rem"><strong style="color:var(--text)">Steady state:</strong> ∂T/∂t → 0. The profile becomes a straight line. The heat flowing in at the hot end equals the heat flowing out at the cold end. No energy is stored in the rod at this point.</p>
+    <p style="margin-top:.6rem"><strong style="color:var(--text)">Key insight:</strong> A material with high k reaches steady state faster — but the steady-state temperature profile (the shape of the line) is the same regardless of k. Conductivity controls the <em>speed</em> of reaching equilibrium, not the final profile shape.</p>
+  </div>
+</section>
+
+<!-- ==================== PRETEST ==================== -->
+<section id="sec-pretest" class="section">
+  <div class="pg-title">Pretest</div>
+  <div class="pg-sub">Assess your knowledge before the experiment</div>
+  <div id="pretest-qs"></div>
+  <div class="quiz-btn-row">
+    <button class="qbtn primary" onclick="submitQuiz('pretest')">Submit Answers</button>
+    <button class="qbtn ghost" onclick="resetQuiz('pretest')">Reset</button>
+  </div>
+  <div id="pretest-result"></div>
+</section>
+
+<!-- ==================== SIMULATION ==================== -->
+<section id="sec-simulation" class="section">
+  <div class="pg-title">Heat Conduction Simulation</div>
+  <div class="pg-sub">Interactive · Guided · Real-time Physics</div>
+  <div class="sim-progress" id="sim-prog"></div>
+
+  <!-- Step 1 -->
+  <div id="ss1">
+    <div class="sim-card">
+      <span class="sim-badge">STEP 1 OF 6 — CONCEPT CHECK</span>
+      <div class="sim-q">In which direction does heat always flow through a conducting rod?</div>
+      <div class="sim-hint">Think of everyday examples — a hot cup of tea placed on a cold table, or touching a metal railing on a winter day. Where does the heat go? Remember the Second Law of Thermodynamics.</div>
+      <div class="mcq-opts" id="s1mcq">
+        <div class="mcq-opt" onclick="s1pick(0,false)"><span class="mcq-letter">A</span> From cold end to hot end</div>
+        <div class="mcq-opt" onclick="s1pick(1,true)"><span class="mcq-letter">B</span> From hot end to cold end</div>
+        <div class="mcq-opt" onclick="s1pick(2,false)"><span class="mcq-letter">C</span> In both directions simultaneously</div>
+        <div class="mcq-opt" onclick="s1pick(3,false)"><span class="mcq-letter">D</span> Only when the rod is horizontal</div>
+      </div>
+      <div class="sim-hint-reveal" id="s1hint"></div>
+      <div class="sim-insight" id="s1ins"></div>
+      <div class="sim-btn-row">
+        <button class="sim-btn primary" id="s1next" onclick="gss(2)" style="display:none">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div id="ss2" style="display:none">
+    <div class="sim-card">
+      <span class="sim-badge">STEP 2 OF 6 — HOT END TEMPERATURE</span>
+      <div class="sim-q">Set the temperature of the hot end of the rod.</div>
+      <div class="sim-hint">This is the end exposed to a heat source. The higher the temperature, the steeper the temperature gradient — and therefore the greater the heat flux. Try values like 200 °C (hot plate), 350 °C (soldering iron), or 600 °C (furnace). Valid range: 50–800 °C.</div>
+      <div class="sim-input-wrap">
+        <input class="sim-input" type="number" id="in-th" min="50" max="800" placeholder="e.g. 300" oninput="thChange()">
+        <span class="sim-unit">°C</span>
+      </div>
+      <div class="sim-err" id="err-th"></div>
+      <div class="sim-insight" id="ins-th"></div>
+      <div class="sim-btn-row">
+        <button class="sim-btn" onclick="gss(1)">← Back</button>
+        <button class="sim-btn primary" onclick="confirmTh()">Confirm →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div id="ss3" style="display:none">
+    <div class="sim-card">
+      <span class="sim-badge">STEP 3 OF 6 — DRIVING FORCE & COLD END</span>
+      <div class="sim-q">What does ΔT represent in Fourier's Law: Q = k × (ΔT / L)?</div>
+      <div class="sim-hint">Look at the formula. Q is heat flux, k is conductivity, L is length. ΔT sits in the numerator — so what does it do to Q when it increases? Think about what controls the "push" that drives heat through the material.</div>
+      <div class="mcq-opts" id="s3mcq">
+        <div class="mcq-opt" onclick="s3pick(0,false)"><span class="mcq-letter">A</span> The average temperature of the rod</div>
+        <div class="mcq-opt" onclick="s3pick(1,true)"><span class="mcq-letter">B</span> The driving force that pushes heat through the rod</div>
+        <div class="mcq-opt" onclick="s3pick(2,false)"><span class="mcq-letter">C</span> The temperature at the midpoint only</div>
+        <div class="mcq-opt" onclick="s3pick(3,false)"><span class="mcq-letter">D</span> The rate of change of thermal conductivity</div>
+      </div>
+      <div class="sim-hint-reveal" id="s3hint"></div>
+      <div class="sim-insight" id="s3ins"></div>
+      <div id="s3cold" style="display:none;margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--border)">
+        <div class="sim-q" style="font-size:.96rem">Good! Now enter the cold end temperature.</div>
+        <div class="sim-hint">This end is kept cool — like being immersed in water or exposed to air. It must be lower than your hot end (<span id="th-ref" style="color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace"></span>). Range: 0–200 °C.</div>
+        <div class="sim-input-wrap">
+          <input class="sim-input" type="number" id="in-tc" min="0" max="200" placeholder="e.g. 25" oninput="tcChange()">
+          <span class="sim-unit">°C</span>
+        </div>
+        <div class="sim-err" id="err-tc"></div>
+        <div class="sim-insight" id="ins-tc"></div>
+      </div>
+      <div class="sim-btn-row">
+        <button class="sim-btn" onclick="gss(2)">← Back</button>
+        <button class="sim-btn primary" id="s3next" onclick="confirmTc()" style="display:none">Confirm →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div id="ss4" style="display:none">
+    <div class="sim-card">
+      <span class="sim-badge">STEP 4 OF 6 — MATERIAL SELECTION</span>
+      <div class="sim-q">What does thermal conductivity (k) measure in a material?</div>
+      <div class="sim-hint">Thermal conductivity has units W/m·K — Watts per metre per Kelvin. Think about what each unit tells you: W is power (rate of energy), m is distance, K is temperature difference. What property does this combination describe?</div>
+      <div class="mcq-opts" id="s4mcq">
+        <div class="mcq-opt" onclick="s4pick(0,false)"><span class="mcq-letter">A</span> The ability of a material to store heat energy</div>
+        <div class="mcq-opt" onclick="s4pick(1,false)"><span class="mcq-letter">B</span> The temperature at which a material melts</div>
+        <div class="mcq-opt" onclick="s4pick(2,true)"><span class="mcq-letter">C</span> How easily heat flows per unit length per degree of temperature difference</div>
+        <div class="mcq-opt" onclick="s4pick(3,false)"><span class="mcq-letter">D</span> The density of the material multiplied by its specific heat capacity</div>
+      </div>
+      <div class="sim-hint-reveal" id="s4hint"></div>
+      <div class="sim-insight" id="s4ins"></div>
+      <div id="s4mat" style="display:none;margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--border)">
+        <div class="sim-q" style="font-size:.96rem">Choose your rod material:</div>
+        <div class="sim-hint">Higher k means faster heat spread. Pick a preset or enter a custom value to explore.</div>
+        <div class="mat-grid">
+          <div class="mat-btn sel" onclick="pickMat(this,'Copper',401)">🟤 Copper<small>401 W/mK</small></div>
+          <div class="mat-btn" onclick="pickMat(this,'Silver',429)">⚪ Silver<small>429 W/mK</small></div>
+          <div class="mat-btn" onclick="pickMat(this,'Aluminium',237)">🔵 Aluminium<small>237 W/mK</small></div>
+          <div class="mat-btn" onclick="pickMat(this,'Steel',50)">⚫ Steel<small>50 W/mK</small></div>
+          <div class="mat-btn" onclick="pickMat(this,'Glass',1)">🪟 Glass<small>~1 W/mK</small></div>
+          <div class="mat-btn" onclick="pickMat(this,'Custom',0)">✏️ Custom</div>
+        </div>
+        <div id="custom-k" style="display:none;margin-bottom:.8rem">
+          <div class="sim-input-wrap">
+            <input class="sim-input" type="number" id="in-k" min="1" max="1000" placeholder="e.g. 150">
+            <span class="sim-unit">W/mK</span>
+          </div>
+          <div class="sim-err" id="err-k"></div>
+        </div>
+        <div class="sim-insight show" id="ins-mat">🟤 Copper (k = 401 W/m·K) is one of the best conductors. Used in heat sinks, cookware, and electrical wiring.</div>
+      </div>
+      <div class="sim-btn-row">
+        <button class="sim-btn" onclick="gss(3)">← Back</button>
+        <button class="sim-btn primary" id="s4next" onclick="confirmMat()" style="display:none">Confirm →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div id="ss5" style="display:none">
+    <div class="sim-card">
+      <span class="sim-badge">STEP 5 OF 6 — PREDICT WITH FOURIER'S LAW</span>
+      <div class="sim-q">Before running the simulation, calculate the expected steady-state heat flux.</div>
+      <div class="sim-hint">For L = 1 m and A = 1 m², Fourier's Law becomes Q = k × ΔT. Use the values you set:</div>
+      <div class="sim-formula" id="pred-formula">Q = k × ΔT = ? × ? = ?</div>
+      <div class="sim-stats-grid" id="pred-summary" style="margin-bottom:1rem"></div>
+      <div class="sim-hint">Enter your predicted heat flux below. You have <strong style="color:var(--accent)" id="attempts-left">3 attempts</strong>.</div>
+      <div class="sim-input-wrap">
+        <input class="sim-input" type="number" id="in-pred" placeholder="Your answer" oninput="document.getElementById('pred-err').textContent=''">
+        <span class="sim-unit">W/m²</span>
+      </div>
+      <div class="sim-err" id="pred-err"></div>
+      <div class="sim-hint-reveal" id="pred-hint"></div>
+      <div class="sim-insight" id="pred-ins"></div>
+      <div class="sim-btn-row">
+        <button class="sim-btn" onclick="gss(4)">← Back</button>
+        <button class="sim-btn primary" id="pred-check-btn" onclick="checkPred()">Check Answer →</button>
+        <button class="sim-btn primary" id="pred-go-btn" onclick="gss(6)" style="display:none">Run Simulation →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 6 -->
+  <div id="ss6" style="display:none">
+    <div class="sim-card">
+      <span class="sim-badge">STEP 6 OF 6 — LIVE SIMULATION</span>
+      <div class="tag-row" id="sim-tags"></div>
+      <div class="ss-badge" id="ss-badge"><div class="ss-dot"></div>Steady state reached — temperature profile is now linear!</div>
+
+      <div class="sim-main-area">
+        <div class="rod-header">
+          <div class="end-label hot">
+            <span>🔥 Hot End</span>
+            <span class="tv" id="lbl-hot">300</span>
+            <span style="font-size:.65rem;font-family:'JetBrains Mono',monospace;color:var(--muted)">°C</span>
+          </div>
+          <div class="mid-meter">
+            <div class="mbar"><div class="mneedle" id="mneedle"></div></div>
+            <span id="mid-label">Midpoint Temperature</span>
+          </div>
+          <div class="end-label cold" style="text-align:right">
+            <span>❄️ Cold End</span>
+            <span class="tv" id="lbl-cold">20</span>
+            <span style="font-size:.65rem;font-family:'JetBrains Mono',monospace;color:var(--muted)">°C</span>
+          </div>
+        </div>
+
+        <div class="rod-wrap">
+          <div class="rod-glow-l"></div>
+          <canvas id="rod-canvas" height="90"></canvas>
+          <div class="rod-glow-r"></div>
+          <div class="temp-tooltip" id="ttip"></div>
+        </div>
+        <div class="click-hint">🖱️ Hover to read temperature · Click to inject a heat pulse</div>
+        <canvas id="temp-graph" height="120"></canvas>
+
+        <div class="equil-row">
+          <span>Approach to steady state</span>
+          <span id="equil-pct">0%</span>
+        </div>
+        <div class="equil-track"><div class="equil-fill" id="equil-fill" style="width:0%"></div></div>
+
+        <div class="controls-grid">
+          <div class="ctrl-group">
+            <label>Simulation speed <span class="lv" id="lbl-sp">5</span>×</label>
+            <input type="range" id="sl-sp" min="1" max="30" value="5" oninput="simSpd=+this.value;document.getElementById('lbl-sp').textContent=this.value">
+          </div>
+          <div class="ctrl-group">
+            <label>Thermal conductivity k <span class="lv" id="lbl-k">401</span> W/mK</label>
+            <input type="range" id="sl-k" min="1" max="500" value="401" oninput="updateK(+this.value)">
+          </div>
+        </div>
+
+        <div class="sim-btn-row" style="margin-top:1.3rem">
+          <button class="sim-btn primary" id="play-btn" onclick="togglePlay()">▶ Play</button>
+          <button class="sim-btn" onclick="doStep()">⏭ Step</button>
+          <button class="sim-btn danger" onclick="resetLive()">↺ Reset</button>
+          <button class="sim-btn" onclick="exportCSV()">📥 Export CSV</button>
+        </div>
+
+        <div class="sim-stats-grid">
+          <div class="stat-chip">Elapsed Time<span class="sv a" id="st-time">0.000 s</span></div>
+          <div class="stat-chip">Midpoint Temp<span class="sv" id="st-mid">— °C</span></div>
+          <div class="stat-chip">Heat Flux Q<span class="sv h" id="st-q">— W/m²</span></div>
+          <div class="stat-chip">Expected Q<span class="sv g" id="st-qexp">—</span></div>
+          <div class="stat-chip">State<span class="sv" id="st-state">Paused</span></div>
+          <div class="stat-chip">Iterations<span class="sv" id="st-iter">0</span></div>
+        </div>
+      </div>
+
+      <div class="fact-ticker">
+        <span>💡</span><span id="fact-text">Copper conducts heat about 8× faster than Steel!</span>
+      </div>
+
+      <div class="sim-btn-row" style="margin-top:1.2rem">
+        <button class="sim-btn" onclick="restartSim()">← Start Over</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== POSTTEST ==================== -->
+<section id="sec-posttest" class="section">
+  <div class="pg-title">Posttest</div>
+  <div class="pg-sub">Verify your understanding after the simulation</div>
+  <div id="posttest-qs"></div>
+  <div class="quiz-btn-row">
+    <button class="qbtn primary" onclick="submitQuiz('posttest')">Submit Answers</button>
+    <button class="qbtn ghost" onclick="resetQuiz('posttest')">Reset</button>
+  </div>
+  <div id="posttest-result"></div>
+</section>
+
+<!-- ==================== TEAM ==================== -->
+<section id="sec-team" class="section">
+  <div class="pg-title">Team Members</div>
+  <div class="pg-sub">Project Contributors</div>
+  <div class="team-grid">
+    <div class="team-card">
+      <div class="team-avatar">👩‍💻</div>
+      <div class="team-id">125B13256</div>
+      <div class="team-name">Arya Pravin Dumbare</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">👩‍🔬</div>
+      <div class="team-id">125B1E251</div>
+      <div class="team-name">Unnati Badhe</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">👩‍🏫</div>
+      <div class="team-id">125B1E246</div>
+      <div class="team-name">Shruti Mahendrakar</div>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">👨‍💻</div>
+      <div class="team-id">125B1E258</div>
+      <div class="team-name">Shourya Kannawar</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3><span class="icon">🏛️</span> Institution</h3>
+    <p>Pimpri Chinchwad College of Engineering — Department of Applied Sciences & Humanities<br>Engineering Mathematics, Experiment 04 — Heat Conduction, Academic Year 2025</p>
+  </div>
+</section>
+
+<!-- ==================== FACULTY ==================== -->
+<section id="sec-faculty" class="section">
+  <div class="pg-title">Faculty In Charge</div>
+  <div class="pg-sub">Guidance and Support</div>
+  <div class="card" style="text-align:center;padding:2.4rem">
+    <div style="font-size:3.5rem;margin-bottom:1rem">🎓</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;margin-bottom:.4rem">Mr. Ganesh Tarte</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--accent);margin-bottom:1.4rem">Department of Applied Sciences & Humanities</div>
+    <p>We sincerely thank Mr. Ganesh Tarte Sir for the constant help, guidance, and support extended throughout this project. His expertise in Engineering Mathematics and encouragement to explore virtual labs made this project possible.</p>
+    <p style="margin-top:.8rem">His valuable feedback on structure, accuracy of physics, and clarity of presentation greatly improved the quality of this work. We are truly grateful for his time and dedication.</p>
+  </div>
+</section>
+
+<!-- ==================== FEEDBACK ==================== -->
+<section id="sec-feedback" class="section">
+  <div class="pg-title">Feedback</div>
+  <div class="pg-sub">Share your thoughts on the project</div>
+  <div class="card">
+    <div class="fb-group"><label class="fb-label">Your Name</label><input class="fb-input" id="fb-name" type="text" placeholder="Enter your full name"></div>
+    <div class="fb-group"><label class="fb-label">Your Rating</label>
+      <div class="star-row" id="stars">
+        <span class="star" onclick="setRating(1)">★</span>
+        <span class="star" onclick="setRating(2)">★</span>
+        <span class="star" onclick="setRating(3)">★</span>
+        <span class="star" onclick="setRating(4)">★</span>
+        <span class="star" onclick="setRating(5)">★</span>
+      </div>
+    </div>
+    <div class="fb-group"><label class="fb-label">What did you find most useful?</label><input class="fb-input" id="fb-useful" type="text" placeholder="e.g. The guided simulation steps"></div>
+    <div class="fb-group"><label class="fb-label">Suggestions for improvement</label><textarea class="fb-textarea" id="fb-msg" rows="4" placeholder="Write your feedback here..."></textarea></div>
+    <button class="cta-btn" onclick="submitFeedback()">Submit Feedback</button>
+    <p id="fb-status" style="margin-top:1rem;color:var(--green);font-weight:600;font-size:.9rem"></p>
+  </div>
+</section>
+
+<!-- ==================== REFERENCES ==================== -->
+<section id="sec-references" class="section">
+  <div class="pg-title">References</div>
+  <div class="pg-sub">Bibliography · Further Reading</div>
+  <div class="ref-item"><span class="ref-num">1</span><div><div class="ref-title">Cengel & Ghajar — Heat and Mass Transfer</div><div class="ref-desc">5th Edition, McGraw-Hill, 2015. Chapters 2–3: Steady-State and Transient Heat Conduction. The definitive undergraduate textbook for this topic.</div></div></div>
+  <div class="ref-item"><span class="ref-num">2</span><div><div class="ref-title">Fourier, J.B.J. — Théorie Analytique de la Chaleur</div><div class="ref-desc">Paris, 1822. The original derivation of the heat equation and Fourier's Law of conduction — a landmark in mathematical physics.</div></div></div>
+  <div class="ref-item"><span class="ref-num">3</span><div><div class="ref-title">Incropera et al. — Fundamentals of Heat and Mass Transfer</div><div class="ref-desc">7th Edition, Wiley, 2011. Industry reference standard for thermal analysis and design of engineering systems.</div></div></div>
+  <div class="ref-item"><span class="ref-num">4</span><div><div class="ref-title">Smith, G.D. — Numerical Solution of Partial Differential Equations</div><div class="ref-desc">Oxford University Press, 1985. Finite difference methods for elliptic, parabolic, and hyperbolic PDEs including the heat equation.</div></div></div>
+  <div class="ref-item"><span class="ref-num">5</span><div><div class="ref-title">NPTEL — Heat Transfer</div><div class="ref-desc">Free online course on conduction, convection, and radiation for engineering students. Available at nptel.ac.in</div></div></div>
+  <div class="ref-item"><span class="ref-num">6</span><div><div class="ref-title">Virtual Labs — IIT Delhi</div><div class="ref-desc">India's national virtual labs platform for engineering science experiments. Available at vlab.co.in</div></div></div>
+  <div class="ref-item"><span class="ref-num">7</span><div><div class="ref-title">PCCOE ASH Department Curriculum 2025</div><div class="ref-desc">Applied Sciences & Humanities, Engineering Mathematics module, Pimpri Chinchwad College of Engineering.</div></div></div>
+</section>
+
+<!-- ==================== THANKS ==================== -->
+<section id="sec-thanks" class="section">
+  <div class="pg-title">Thank You</div>
+  <div class="pg-sub">Closing Note</div>
+  <div class="card thanks-wrap">
+    <div class="thanks-icon">🙏</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:2rem;margin-bottom:1rem">Thank you for visiting!</h2>
+    <p>We hope this Heat Conduction Virtual Lab made the principles of thermal energy transfer clear, engaging, and intuitive. The guided simulation was designed to encourage active learning rather than passive observation.</p>
+    <p style="margin-top:1rem">Whether you're a student exploring the concept for the first time, or an instructor looking for a demonstration tool — we hope it served you well. Physics is beautiful when you can see it move.</p>
+    <p style="margin-top:1rem;color:var(--muted)">— Team PCCOE, ASH Department, 2025</p>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">
+    <div class="footer-circle">🔥</div>
+    <div class="footer-text">Pimpri Chinchwad College of Engineering<br><span style="opacity:.5">Applied Sciences & Humanities | Heat Conduction Module 2025</span></div>
+  </div>
+  <div class="footer-right">Virtual Labs Platform<br><span style="opacity:.5">Engineering Mathematics — Experiment 04</span></div>
+</footer>
+
+<script>
+/* ============================================================
+   SECTION NAVIGATION
+   ============================================================ */
+const sections = ['home','aim','theory','pretest','simulation','posttest','team','faculty','feedback','references','thanks'];
+
+function showSection(id){
+  sections.forEach((s,i)=>{
+    const sec = document.getElementById('sec-'+s);
+    const tab = document.querySelectorAll('.tab')[i];
+    const nav = document.querySelectorAll('nav a')[i];
+    if(sec) sec.classList.toggle('active', s===id);
+    if(tab) tab.classList.toggle('active', s===id);
+    if(nav) nav.classList.toggle('active', s===id);
+  });
+  if(id==='simulation') initSim();
+  if(id==='pretest') buildQuiz('pretest');
+  if(id==='posttest') buildQuiz('posttest');
+  if(id==='theory') animateBars();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ============================================================
+   THEORY — CONDUCTIVITY BARS
+   ============================================================ */
+const matBars = [
+  {name:'Silver',   k:429, color:'#c0c0c0'},
+  {name:'Copper',   k:401, color:'#b87333'},
+  {name:'Aluminium',k:237, color:'#8cb4d2'},
+  {name:'Steel',    k:50,  color:'#708090'},
+  {name:'Concrete', k:1.7, color:'#a0937d'},
+  {name:'Glass',    k:1.0, color:'#7ec8e3'},
+];
+let barsAnimated = false;
+function animateBars(){
+  if(barsAnimated) return; barsAnimated=true;
+  const wrap = document.getElementById('cbar-wrap');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const max = 429;
+  matBars.forEach(m=>{
+    const pct = (m.k/max*100).toFixed(1);
+    const row = document.createElement('div');
+    row.className = 'cbar-row';
+    row.innerHTML = `<div class="cbar-label">${m.name}</div>
+      <div class="cbar-track"><div class="cbar-fill" id="cbar-${m.name}" style="width:0%;background:${m.color}"></div></div>
+      <div class="cbar-val">${m.k} W/mK</div>`;
+    wrap.appendChild(row);
+  });
+  setTimeout(()=>{
+    matBars.forEach(m=>{
+      const el = document.getElementById('cbar-'+m.name);
+      if(el) el.style.width = (m.k/429*100)+'%';
+    });
+  },150);
+}
+
+/* ============================================================
+   QUIZ ENGINE
+   ============================================================ */
+const quizData = {
+  pretest:[
+    {q:"What physical phenomenon does Fourier's Law describe?",
+     opts:["Radiation emitted by a hot body","Heat transfer due to a temperature gradient","Convective heat coefficient in fluids","The latent heat of a phase change"],
+     ans:1,
+     hints:["Think: Fourier's Law has the formula Q = −kA(dT/dx). The dT/dx term is a ___ gradient.","The law relates heat flow to a spatial temperature difference — not radiation, not phase change."],
+     exp:"Fourier's Law relates the rate of heat conduction to the spatial temperature gradient (dT/dx). It's the foundational law for solid heat transfer."},
+    {q:"In Q = −kA(dT/dx), what does the symbol k represent?",
+     opts:["Thermal diffusivity (m²/s)","Thermal conductivity (W/m·K)","Boltzmann constant","Specific heat capacity (J/kg·K)"],
+     ans:1,
+     hints:["k has units W/m·K — Watts per metre per Kelvin. This is a material property describing how easily heat flows through it.","It is NOT diffusivity (that's α). k is a direct measure of the material's ability to conduct heat."],
+     exp:"k is thermal conductivity in W/m·K. It is a material property — high k means a good conductor (like copper), low k means an insulator (like glass)."},
+    {q:"The negative sign in Fourier's Law (Q = −kA dT/dx) indicates:",
+     opts:["Heat flows from cold to hot","Heat flows from hot to cold — opposite to the temperature gradient","Q can be negative in magnitude","k must always be negative"],
+     ans:1,
+     hints:["If temperature decreases in the +x direction, dT/dx is negative. A negative times a negative gives a positive Q — meaning heat flows in the +x direction.","This is the Second Law of Thermodynamics in mathematical form: spontaneous heat flow is always from high to low temperature."],
+     exp:"The negative sign enforces thermodynamic consistency: heat spontaneously flows from high to low temperature (opposite to the direction of the temperature gradient)."},
+    {q:"Among common metals, which has the highest thermal conductivity?",
+     opts:["Copper (401 W/mK)","Aluminium (237 W/mK)","Steel (50 W/mK)","Silver (429 W/mK)"],
+     ans:3,
+     hints:["Compare the values given in each option. Which number is largest?","Silver > Copper > Aluminium > Steel in terms of thermal conductivity."],
+     exp:"Silver (429 W/m·K) has the highest thermal conductivity of all common metals, slightly above Copper (401 W/m·K). However, copper is far more used due to cost."},
+    {q:"At steady state, the temperature profile along a 1D rod with fixed boundary temperatures is:",
+     opts:["Exponential","Sinusoidal","Linear","Constant everywhere"],
+     ans:2,
+     hints:["At steady state, ∂T/∂t = 0. The heat equation becomes ∂²T/∂x² = 0. What kind of function has a zero second derivative?","If d²T/dx² = 0, then dT/dx = constant. A function with constant slope is a straight line."],
+     exp:"At steady state, the second derivative ∂²T/∂x² = 0, meaning dT/dx is constant, so T(x) is linear from T_hot at x=0 to T_cold at x=L."}
+  ],
+  posttest:[
+    {q:"Doubling the thermal conductivity k of the rod will:",
+     opts:["Halve the time to reach steady state","Double the speed of approaching steady state","Double the final temperature at the midpoint","Have no effect on the simulation"],
+     ans:1,
+     hints:["Thermal diffusivity α = k/(ρ·c_p). The time to reach steady state scales as L²/α. What happens to α if k doubles?","α doubles → the rod diffuses heat twice as fast → reaches steady state in roughly half the time."],
+     exp:"Thermal diffusivity α = k/(ρ·c_p) doubles when k doubles. Since the time constant for reaching equilibrium scales as 1/α, the rod reaches steady state approximately twice as fast."},
+    {q:"For the explicit finite-difference method to be stable, the parameter r = α·Δt/Δx² must satisfy:",
+     opts:["r > 1","r ≤ 0.5","r = 1","r ≥ 2"],
+     ans:1,
+     hints:["The explicit scheme is conditionally stable. If r gets too large, errors amplify at each step.","The stability criterion for 1D explicit heat equation is r ≤ 0.5. Exceeding this causes oscillating, diverging solutions."],
+     exp:"r ≤ 0.5 is the stability criterion for the 1D explicit finite-difference scheme. Our simulator automatically clamps α to satisfy this, preventing divergence."},
+    {q:"If T_hot = 400 °C and T_cold = 0 °C, the expected midpoint temperature at steady state is:",
+     opts:["400 °C","100 °C","200 °C","0 °C"],
+     ans:2,
+     hints:["At steady state the temperature profile is linear. The midpoint is exactly halfway between x=0 and x=L.","Midpoint T = (T_hot + T_cold)/2 = (400 + 0)/2 = 200 °C."],
+     exp:"At steady state the profile is linear: T(x) = T_hot − (T_hot − T_cold)·x/L. At the midpoint x = L/2, T = (400+0)/2 = 200 °C."},
+    {q:"What happens to heat flux Q when you inject a thermal pulse (click) on the rod in the simulation?",
+     opts:["Q immediately reaches its steady-state value","The rod enters a new transient phase as heat redistributes","Q becomes zero temporarily","The cold end temperature increases permanently"],
+     ans:1,
+     hints:["The pulse creates a local temperature peak — the rod is no longer in steady state. What must happen next?","The system must diffuse the extra energy until equilibrium is re-established — this is another transient phase."],
+     exp:"Injecting a pulse disrupts the linear steady-state profile, creating a local hotspot. The system enters a new transient phase and heat redistributes until a new (same) steady state is reached."},
+    {q:"Thermal diffusivity α = k/(ρ·c_p) controls:",
+     opts:["The final steady-state temperature distribution","How quickly temperature changes propagate through the material","The amount of heat stored at each point","The melting point of the material"],
+     ans:1,
+     hints:["α appears in the transient heat equation: ∂T/∂t = α·∂²T/∂x². It multiplies the spatial curvature term — what does that imply?","High α means temperature disturbances (like the pulse you inject) travel quickly through the rod."],
+     exp:"Thermal diffusivity α governs how quickly temperature disturbances propagate. High α (like copper) means rapid response; low α (like glass) means very slow thermal response."}
+  ]
+};
+const userAns = {pretest:{},posttest:{}};
+const hintCounts = {pretest:{},posttest:{}};
+
+function buildQuiz(type){
+  const c = document.getElementById(type+'-qs');
+  if(!c||c.innerHTML.trim()) return;
+  const letters = ['A','B','C','D'];
+  let html='';
+  quizData[type].forEach((item,i)=>{
+    html+=`<div class="q-card">
+      <div class="q-num">QUESTION ${String(i+1).padStart(2,'0')}</div>
+      <div class="q-text">${item.q}</div>
+      <div class="opts-list" id="${type}-opts-${i}">`;
+    item.opts.forEach((opt,j)=>{
+      html+=`<div class="opt" id="${type}-o${i}-${j}" onclick="pickOpt('${type}',${i},${j})">
+        <span class="opt-letter">${letters[j]}</span>${opt}</div>`;
+    });
+    html+=`</div>
+      <div class="hint-box" id="${type}-hint-${i}"></div>
+      <div class="exp-box" id="${type}-exp-${i}">${item.exp}</div>
+    </div>`;
+  });
+  c.innerHTML=html;
+  hintCounts[type]={};
+  quizData[type].forEach((_,i)=>hintCounts[type][i]=0);
+}
+
+function pickOpt(type,qi,oi){
+  if(document.getElementById(`${type}-exp-${qi}`).classList.contains('show')) return;
+  document.querySelectorAll(`#${type}-opts-${qi} .opt`).forEach(o=>o.classList.remove('sel'));
+  document.getElementById(`${type}-o${qi}-${oi}`).classList.add('sel');
+  userAns[type][qi]=oi;
+}
+
+function submitQuiz(type){
+  const data=quizData[type];
+  let score=0;
+  data.forEach((item,i)=>{
+    const sel=userAns[type][i];
+    const expEl=document.getElementById(`${type}-exp-${i}`);
+    const hintEl=document.getElementById(`${type}-hint-${i}`);
+    expEl.classList.add('show');
+    hintEl.classList.remove('show');
+    if(sel===item.ans){ score++; }
+    item.opts.forEach((_,j)=>{
+      const el=document.getElementById(`${type}-o${i}-${j}`);
+      el.classList.remove('sel','correct','wrong');
+      if(j===item.ans) el.classList.add('correct');
+      if(sel===j&&sel!==item.ans) el.classList.add('wrong');
+    });
+  });
+  const pct=Math.round(score/data.length*100);
+  const emoji=pct>=80?'🎉':pct>=60?'👍':'📚';
+  const msg=pct>=80?'Excellent! You\'re ready for the simulation.':pct>=60?'Good work! Review the theory for missed questions.':'Keep studying! Try the theory section and come back.';
+  const res=document.getElementById(type+'-result');
+  res.innerHTML=`<div class="quiz-score">
+    <div class="score-circle">${pct}%</div>
+    <div style="text-align:center;font-weight:700;font-size:1.1rem;margin-bottom:.4rem">${emoji} ${score} / ${data.length} correct</div>
+    <div style="text-align:center;color:var(--muted2);font-size:.88rem">${msg}</div>
+  </div>`;
+}
+
+function resetQuiz(type){
+  userAns[type]={};
+  document.getElementById(type+'-qs').innerHTML='';
+  document.getElementById(type+'-result').innerHTML='';
+  buildQuiz(type);
+}
+
+/* ============================================================
+   SIMULATION STATE
+   ============================================================ */
+const N=100;
+let T=new Float64Array(N), Tprev=new Float64Array(N);
+let simP={th:300,tc:20,k:401,mat:'Copper'};
+let simRunning=false,simFrame=null,simTime=0,simIter=0,simSteady=false,simSpd=5;
+let rodCvs,rodCtx,grCvs,grCtx,cvReady=false,hoverFrac=-1;
+let simInited=false;
+let predAttempts=3;
+
+const matDescs={
+  Copper:'🟤 Copper (k=401 W/m·K): Excellent conductor. Used in heat sinks, cookware, wiring.',
+  Silver:'⚪ Silver (k=429 W/m·K): Best metallic conductor. Expensive but extremely fast heat spread.',
+  Aluminium:'🔵 Aluminium (k=237 W/m·K): Good conductor, very lightweight. Widely used in aerospace.',
+  Steel:'⚫ Steel (k≈50 W/m·K): Poor conductor relative to pure metals — structural, not thermal.',
+  Glass:'🪟 Glass (k≈1 W/m·K): Excellent thermal insulator. Heat spreads extremely slowly.',
+  Custom:'✏️ Custom: Adjust k to explore any material behaviour you like.'
+};
+
+/* Build step progress */
+function buildProg(){
+  const p=document.getElementById('sim-prog');
+  if(!p) return;
+  p.innerHTML='';
+  for(let i=1;i<=6;i++){
+    const d=document.createElement('div');
+    d.className='sp-dot';d.id='sp'+i;
+    p.appendChild(d);
+  }
+}
+function setProg(active){
+  for(let i=1;i<=6;i++){
+    const d=document.getElementById('sp'+i);
+    if(!d) return;
+    d.className='sp-dot'+(i<active?' done':i===active?' active':'');
+  }
+}
+
+function showSS(n){
+  for(let i=1;i<=6;i++){
+    const e=document.getElementById('ss'+i);
+    if(e) e.style.display=i===n?'block':'none';
+  }
+  setProg(n);
+  if(n===6) launchLive();
+}
+function gss(n){showSS(n);}
+
+function initSim(){
+  if(simInited) return;
+  simInited=true;
+  buildProg();
+  setProg(1);
+  showSS(1);
+}
+
+/* ---- STEP 1 MCQ ---- */
+let s1attempts=0;
+function s1pick(i,correct){
+  const opts=document.getElementById('s1mcq').querySelectorAll('.mcq-opt');
+  opts.forEach(o=>o.className='mcq-opt');
+  opts[i].className='mcq-opt '+(correct?'correct':'wrong');
+  const hint=document.getElementById('s1hint');
+  const ins=document.getElementById('s1ins');
+  if(correct){
+    ins.innerHTML='<strong>Correct!</strong> Heat always flows from high temperature to low temperature — this is the Second Law of Thermodynamics. The hot end supplies thermal energy; the cold end absorbs it. No work is needed for this spontaneous process.';
+    ins.classList.add('show'); hint.classList.remove('show');
+    setTimeout(()=>document.getElementById('s1next').style.display='inline-block',500);
+  } else {
+    s1attempts++;
+    if(s1attempts===1){
+      hint.innerHTML='🔍 <span class="hl">Hint:</span> Think about a hot cup of tea sitting in a cold room. Does the room get colder, or does the tea get colder? Heat always moves toward lower temperature.';
+    } else {
+      hint.innerHTML='🔍 <span class="hl">Hint:</span> The Second Law of Thermodynamics states that thermal energy spontaneously flows from <em>higher</em> temperature to <em>lower</em> temperature. Look for option B.';
+    }
+    hint.classList.add('show');
+    ins.classList.remove('show');
+  }
+}
+
+/* ---- STEP 2 ---- */
+function thChange(){
+  const v=+document.getElementById('in-th').value;
+  const err=document.getElementById('err-th');
+  const ins=document.getElementById('ins-th');
+  err.textContent='';
+  if(v>=50&&v<=800){
+    ins.innerHTML=`At <strong>${v} °C</strong>, the metal atoms vibrate intensely. This is ${v<150?'similar to a hot plate (~100–150°C)':v<400?'similar to a soldering iron tip':v<600?'like a metal working furnace':' extremely hot — near forge temperatures'}. The temperature difference ΔT = ${v} − (cold end) will be the driving force.`;
+    ins.classList.add('show');
+  } else ins.classList.remove('show');
+}
+function confirmTh(){
+  const v=+document.getElementById('in-th').value;
+  const err=document.getElementById('err-th');
+  if(!v||v<50||v>800){err.textContent='Please enter a value between 50 and 800 °C.';return;}
+  simP.th=v; err.textContent='';
+  document.getElementById('th-ref').textContent=v+' °C';
+  showSS(3);
+}
+
+/* ---- STEP 3 MCQ ---- */
+let s3attempts=0;
+function s3pick(i,correct){
+  const opts=document.getElementById('s3mcq').querySelectorAll('.mcq-opt');
+  opts.forEach(o=>o.className='mcq-opt');
+  opts[i].className='mcq-opt '+(correct?'correct':'wrong');
+  const hint=document.getElementById('s3hint');
+  const ins=document.getElementById('s3ins');
+  if(correct){
+    ins.innerHTML=`<strong>Exactly right!</strong> ΔT = T_hot − T_cold is the <em>driving force</em> for conduction — analogous to voltage in an electrical circuit. A larger ΔT means more heat per second flows through the rod. With your hot end at ${simP.th}°C, every degree of cold end temperature subtracted increases the flux.`;
+    ins.classList.add('show'); hint.classList.remove('show');
+    setTimeout(()=>{document.getElementById('s3cold').style.display='block';setTimeout(()=>document.getElementById('in-tc')?.focus(),100);},500);
+  } else {
+    s3attempts++;
+    if(s3attempts===1){
+      hint.innerHTML='🔍 <span class="hl">Hint:</span> Look at the formula Q = k × ΔT / L. ΔT appears in the numerator. If ΔT increases, what happens to Q? This tells you what ΔT "does" to the heat flow.';
+    } else {
+      hint.innerHTML='🔍 <span class="hl">Hint:</span> Think of ΔT like a pressure difference that pushes heat through the rod — the bigger the temperature difference between the two ends, the stronger the "push". Option B describes this correctly.';
+    }
+    hint.classList.add('show'); ins.classList.remove('show');
+  }
+}
+function tcChange(){
+  const v=+document.getElementById('in-tc').value;
+  const err=document.getElementById('err-tc');
+  const ins=document.getElementById('ins-tc');
+  err.textContent='';
+  if(v>=0&&v<=200&&v<simP.th){
+    const dt=simP.th-v;
+    ins.innerHTML=`ΔT = ${simP.th} − ${v} = <strong style="color:var(--accent)">${dt} °C</strong>. Expected heat flux ≈ k × ${dt} W/m² — the larger ΔT, the greater the heat flow. At steady state, the midpoint temperature will be <strong>${((simP.th+v)/2).toFixed(1)} °C</strong>.`;
+    ins.classList.add('show');
+    document.getElementById('s3next').style.display='inline-block';
+  } else {
+    ins.classList.remove('show');
+    document.getElementById('s3next').style.display='none';
+  }
+}
+function confirmTc(){
+  const v=+document.getElementById('in-tc').value;
+  const err=document.getElementById('err-tc');
+  if(v===''||isNaN(v)||v<0||v>200){err.textContent='Enter a value between 0 and 200 °C.';return;}
+  if(v>=simP.th){err.textContent=`Cold end must be below ${simP.th} °C.`;return;}
+  simP.tc=v; err.textContent='';
+  showSS(4);
+}
+
+/* ---- STEP 4 MCQ ---- */
+let s4attempts=0;
+function s4pick(i,correct){
+  const opts=document.getElementById('s4mcq').querySelectorAll('.mcq-opt');
+  opts.forEach(o=>o.className='mcq-opt');
+  opts[i].className='mcq-opt '+(correct?'correct':'wrong');
+  const hint=document.getElementById('s4hint');
+  const ins=document.getElementById('s4ins');
+  if(correct){
+    ins.innerHTML='<strong>Perfect!</strong> Thermal conductivity k (W/m·K) = Watts of power per metre of thickness per Kelvin of temperature difference. High k (copper, silver) → heat flows easily. Low k (glass, air) → insulating material.';
+    ins.classList.add('show'); hint.classList.remove('show');
+    setTimeout(()=>{
+      document.getElementById('s4mat').style.display='block';
+      document.getElementById('s4next').style.display='inline-block';
+    },500);
+  } else {
+    s4attempts++;
+    if(s4attempts===1){
+      hint.innerHTML='🔍 <span class="hl">Hint:</span> The units are W/(m·K). W is power. m is distance. K is temperature. So k measures power flow (W) per unit thickness (m) per degree (K). What property does that describe?';
+    } else {
+      hint.innerHTML='🔍 <span class="hl">Hint:</span> k is NOT related to storing heat (that\'s specific heat c_p), NOT the melting point, and NOT density times specific heat (that\'s ρ·c_p). k specifically measures how easily heat <em>passes through</em> the material — option C.';
+    }
+    hint.classList.add('show'); ins.classList.remove('show');
+  }
+}
+function pickMat(el,name,k){
+  document.querySelectorAll('.mat-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  simP.mat=name;
+  document.getElementById('custom-k').style.display=name==='Custom'?'block':'none';
+  if(name!=='Custom') simP.k=k;
+  const ins=document.getElementById('ins-mat');
+  ins.textContent=matDescs[name]||'';
+  ins.classList.add('show');
+}
+function confirmMat(){
+  if(simP.mat==='Custom'){
+    const v=+document.getElementById('in-k').value;
+    const err=document.getElementById('err-k');
+    if(!v||v<1){err.textContent='Enter a conductivity ≥ 1 W/mK.';return;}
+    simP.k=v; err.textContent='';
+  }
+  predAttempts=3;
+  document.getElementById('pred-check-btn').style.display='inline-block';
+  document.getElementById('pred-go-btn').style.display='none';
+  document.getElementById('pred-ins').classList.remove('show');
+  document.getElementById('pred-hint').classList.remove('show');
+  document.getElementById('in-pred').value='';
+  const dt=simP.th-simP.tc;
+  document.getElementById('pred-formula').textContent=`Q = k × ΔT = ${simP.k} × ${dt} = ???  W/m²`;
+  document.getElementById('pred-summary').innerHTML=`
+    <div class="stat-chip">k<span class="sv a">${simP.k} W/mK</span></div>
+    <div class="stat-chip">T_hot<span class="sv h">${simP.th} °C</span></div>
+    <div class="stat-chip">T_cold<span class="sv">${simP.tc} °C</span></div>
+    <div class="stat-chip">ΔT<span class="sv">${dt} °C</span></div>`;
+  document.getElementById('attempts-left').textContent=predAttempts+' attempts';
+  showSS(5);
+  setTimeout(()=>document.getElementById('in-pred')?.focus(),200);
+}
+
+function checkPred(){
+  const v=+document.getElementById('in-pred').value;
+  const err=document.getElementById('pred-err');
+  if(!v||v<=0){err.textContent='Please enter your predicted heat flux.';return;}
+  err.textContent='';
+  const correct=simP.k*(simP.th-simP.tc);
+  const pct=Math.abs(v-correct)/correct*100;
+  const ins=document.getElementById('pred-ins');
+  const hint=document.getElementById('pred-hint');
+  predAttempts--;
+  document.getElementById('attempts-left').textContent=predAttempts+' attempts remaining';
+  if(pct<5){
+    ins.innerHTML=`<strong style="color:var(--green)">🎉 Excellent!</strong> Your answer of ${v.toFixed(0)} W/m² is spot-on! Correct: Q = ${simP.k} × ${simP.th-simP.tc} = <strong>${correct.toFixed(0)} W/m²</strong>. Now run the simulation to verify this!`;
+    ins.classList.add('show'); hint.classList.remove('show');
+    document.getElementById('pred-check-btn').style.display='none';
+    document.getElementById('pred-go-btn').style.display='inline-block';
+  } else if(predAttempts>0){
+    // Give hints instead of the answer
+    if(predAttempts===2){
+      hint.innerHTML=`🔍 <span class="hl">Hint 1:</span> The formula is Q = k × ΔT (for L=1m, A=1m²). You have k = ${simP.k} W/mK and ΔT = ${simP.th} − ${simP.tc} = ${simP.th-simP.tc} °C. Try multiplying these two numbers.`;
+    } else if(predAttempts===1){
+      const range_lo=Math.floor(correct*0.9);
+      const range_hi=Math.ceil(correct*1.1);
+      hint.innerHTML=`🔍 <span class="hl">Hint 2:</span> Q = ${simP.k} × ${simP.th-simP.tc}. The answer should be between ${range_lo} and ${range_hi} W/m². Your current answer of ${v.toFixed(0)} is ${v<correct?'too low':'too high'}.`;
+    }
+    hint.classList.add('show');
+    ins.innerHTML=`Not quite (${pct.toFixed(0)}% off). ${predAttempts} attempt(s) remaining.`;
+    ins.classList.add('show');
+  } else {
+    // All attempts used — give the answer with full explanation
+    ins.innerHTML=`The correct answer is <strong style="color:var(--accent)">${correct.toFixed(0)} W/m²</strong>.<br>Q = k × ΔT = ${simP.k} × ${simP.th-simP.tc} = ${correct.toFixed(0)} W/m².<br>Your answer: ${v.toFixed(0)} W/m² (${pct.toFixed(0)}% off). Run the simulation to see this verified in real time!`;
+    ins.classList.add('show'); hint.classList.remove('show');
+    document.getElementById('pred-check-btn').style.display='none';
+    document.getElementById('pred-go-btn').style.display='inline-block';
+  }
+}
+
+/* ---- STEP 6 LIVE SIM ---- */
+function launchLive(){
+  // Tags
+  const tags=document.getElementById('sim-tags');
+  if(tags) tags.innerHTML=`
+    <span class="stag">Hot end: <b>${simP.th}°C</b></span>
+    <span class="stag">Cold end: <b>${simP.tc}°C</b></span>
+    <span class="stag">ΔT: <b>${simP.th-simP.tc}°C</b></span>
+    <span class="stag">Material: <b>${simP.mat}</b></span>
+    <span class="stag">k: <b>${simP.k} W/mK</b></span>`;
+
+  document.getElementById('lbl-hot').textContent=simP.th;
+  document.getElementById('lbl-cold').textContent=simP.tc;
+  document.getElementById('sl-k').value=Math.min(500,simP.k);
+  document.getElementById('lbl-k').textContent=simP.k;
+  document.getElementById('st-qexp').textContent=(simP.k*(simP.th-simP.tc)).toFixed(0)+' W/m²';
+
+  if(!cvReady){
+    cvReady=true;
+    rodCvs=document.getElementById('rod-canvas');
+    rodCtx=rodCvs.getContext('2d');
+    grCvs=document.getElementById('temp-graph');
+    grCtx=grCvs.getContext('2d');
+
+    rodCvs.addEventListener('mousemove',e=>{
+      const r=rodCvs.getBoundingClientRect();
+      hoverFrac=(e.clientX-r.left)/r.width;
+      drawRod();
+      const ttip=document.getElementById('ttip');
+      const idx=Math.min(N-1,Math.floor(hoverFrac*N));
+      ttip.textContent=T[idx].toFixed(1)+'°C';
+      ttip.style.display='block';
+      ttip.style.left=(e.clientX-r.left)+'px';
+      ttip.style.top='-28px';
+    });
+    rodCvs.addEventListener('mouseleave',()=>{
+      hoverFrac=-1; drawRod();
+      document.getElementById('ttip').style.display='none';
+    });
+    rodCvs.addEventListener('click',e=>{
+      const r=rodCvs.getBoundingClientRect();
+      const fx=(e.clientX-r.left)/r.width;
+      const idx=Math.min(N-1,Math.floor(fx*N));
+      const pulse=(simP.th-simP.tc)*0.35;
+      for(let i=Math.max(1,idx-5);i<Math.min(N-2,idx+5);i++){
+        T[i]=Math.min(simP.th,T[i]+pulse*Math.exp(-((i-idx)**2)/8));
+      }
+      simSteady=false;
+      document.getElementById('ss-badge').classList.remove('show');
+      drawRod(); drawGraph();
+    });
+    window.addEventListener('resize',()=>{if(cvReady){drawRod();drawGraph();}});
+  }
+  resetLive();
+}
+
+function resetLive(){
+  simTime=0; simIter=0; simSteady=false;
+  if(simRunning){simRunning=false;cancelAnimationFrame(simFrame);}
+  document.getElementById('play-btn').textContent='▶ Play';
+  document.getElementById('st-state').textContent='Paused';
+  document.getElementById('ss-badge').classList.remove('show');
+  document.getElementById('equil-fill').style.width='0%';
+  document.getElementById('equil-pct').textContent='0%';
+  // Init T as linear
+  for(let i=0;i<N;i++) T[i]=simP.tc+(simP.th-simP.tc)*(1-i/(N-1));
+  drawRod(); drawGraph(); updateStats();
+}
+
+function doStep(){
+  const alpha=Math.min(0.45,simP.k/1200);
+  Tprev=T.slice();
+  for(let i=1;i<N-1;i++){
+    T[i]=Tprev[i]+alpha*(Tprev[i-1]-2*Tprev[i]+Tprev[i+1]);
+  }
+  T[0]=simP.th; T[N-1]=simP.tc;
+  simTime+=0.08; simIter++;
+  const mid=T[Math.floor(N/2)];
+  const ideal=(simP.th+simP.tc)/2;
+  const pct=Math.max(0,Math.min(100,100-Math.abs(mid-ideal)/Math.max(1,simP.th-simP.tc)*200));
+  document.getElementById('equil-fill').style.width=pct.toFixed(0)+'%';
+  document.getElementById('equil-pct').textContent=pct.toFixed(0)+'%';
+  if(pct>97&&!simSteady){
+    simSteady=true;
+    document.getElementById('ss-badge').classList.add('show');
+  }
+  drawRod(); drawGraph(); updateStats();
+}
+
+function updateStats(){
+  const mid=T[Math.floor(N/2)];
+  const q=(simP.k*Math.abs(T[1]-T[0])*N).toFixed(1);
+  document.getElementById('st-time').textContent=simTime.toFixed(3)+' s';
+  document.getElementById('st-mid').textContent=mid.toFixed(1)+' °C';
+  document.getElementById('st-q').textContent=q+' W/m²';
+  document.getElementById('st-iter').textContent=simIter;
+  document.getElementById('st-state').textContent=simRunning?'Running':'Paused';
+  const needle=document.getElementById('mneedle');
+  if(needle) needle.style.left=((mid-simP.tc)/Math.max(1,simP.th-simP.tc)*100)+'%';
+  document.getElementById('mid-label').textContent=`Midpoint: ${mid.toFixed(1)} °C`;
+}
+
+function updateK(v){
+  simP.k=v;
+  document.getElementById('lbl-k').textContent=v;
+  document.getElementById('st-qexp').textContent=(v*(simP.th-simP.tc)).toFixed(0)+' W/m²';
+}
+
+function drawRod(){
+  if(!rodCtx) return;
+  const dpr=window.devicePixelRatio||1;
+  rodCvs.width=rodCvs.clientWidth*dpr;
+  rodCvs.height=90*dpr;
+  const w=rodCvs.width, h=rodCvs.height;
+  const bw=w/N;
+  for(let i=0;i<N;i++){
+    const norm=Math.max(0,Math.min(1,(T[i]-simP.tc)/Math.max(1,simP.th-simP.tc)));
+    // Color: blue (cold) → cyan → green → yellow → orange → red (hot)
+    const r=Math.round(20+norm*220);
+    const g=Math.round(120-norm*80+norm*norm*50);
+    const b=Math.round(220-norm*200);
+    rodCtx.fillStyle=`rgb(${r},${g},${b})`;
+    rodCtx.fillRect(i*bw,0,bw+1,h);
+  }
+  // Hover indicator
+  if(hoverFrac>=0){
+    const idx=Math.min(N-1,Math.floor(hoverFrac*N));
+    rodCtx.fillStyle='rgba(255,255,255,.25)';
+    rodCtx.fillRect(idx*bw-1,0,bw+2,h);
+    // Crosshair line
+    rodCtx.strokeStyle='rgba(255,255,255,.8)';
+    rodCtx.lineWidth=1.5*dpr;
+    rodCtx.beginPath();
+    rodCtx.moveTo((idx+.5)*bw,0);
+    rodCtx.lineTo((idx+.5)*bw,h);
+    rodCtx.stroke();
+  }
+}
+
+function drawGraph(){
+  if(!grCtx) return;
+  const dpr=window.devicePixelRatio||1;
+  grCvs.width=grCvs.clientWidth*dpr;
+  grCvs.height=120*dpr;
+  const w=grCvs.width, h=grCvs.height;
+  const pad=12*dpr;
+  grCtx.clearRect(0,0,w,h);
+  // Background
+  grCtx.fillStyle='#0b0f1a'; grCtx.fillRect(0,0,w,h);
+  // Ideal linear line
+  const mn=simP.tc, mx=simP.th, rng=Math.max(1,mx-mn);
+  grCtx.strokeStyle='rgba(251,191,36,.2)';
+  grCtx.lineWidth=1*dpr;
+  grCtx.setLineDash([6*dpr,4*dpr]);
+  grCtx.beginPath();
+  grCtx.moveTo(0,pad+(1-(simP.th-mn)/rng)*(h-2*pad));
+  grCtx.lineTo(w,pad+(1-(simP.tc-mn)/rng)*(h-2*pad));
+  grCtx.stroke();
+  grCtx.setLineDash([]);
+  // Grid lines
+  grCtx.strokeStyle='rgba(255,255,255,.05)';
+  grCtx.lineWidth=1;
+  for(let i=1;i<5;i++){grCtx.beginPath();grCtx.moveTo(0,h/5*i);grCtx.lineTo(w,h/5*i);grCtx.stroke();}
+  // Temperature curve
+  grCtx.beginPath();
+  T.forEach((t,i)=>{
+    const x=i/(N-1)*w;
+    const y=pad+(1-(t-mn)/rng)*(h-2*pad);
+    i===0?grCtx.moveTo(x,y):grCtx.lineTo(x,y);
+  });
+  grCtx.strokeStyle='#60a5fa';
+  grCtx.lineWidth=2.5*dpr;
+  grCtx.stroke();
+  // Labels
+  grCtx.fillStyle='rgba(90,106,138,.8)';
+  grCtx.font=`${9*dpr}px JetBrains Mono`;
+  grCtx.fillText(`${mx.toFixed(0)}°C`,3,pad+6);
+  grCtx.fillText(`${mn.toFixed(0)}°C`,3,h-3);
+  grCtx.fillText('← Hot',3,h-3-10*dpr);
+  grCtx.fillText('Cold →',w-40*dpr,h-3-10*dpr);
+}
+
+function togglePlay(){
+  simRunning=!simRunning;
+  document.getElementById('play-btn').textContent=simRunning?'⏸ Pause':'▶ Play';
+  document.getElementById('st-state').textContent=simRunning?'Running':'Paused';
+  if(simRunning) simLoop(); else cancelAnimationFrame(simFrame);
+}
+function simLoop(){
+  if(!simRunning) return;
+  for(let i=0;i<simSpd;i++) doStep();
+  simFrame=requestAnimationFrame(simLoop);
+}
+function exportCSV(){
+  let csv='node_index,position_m,temperature_C\n';
+  T.forEach((t,i)=>csv+=`${i},${(i/(N-1)).toFixed(4)},${t.toFixed(4)}\n`);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='heat_conduction_data.csv';
+  a.click();
+}
+function restartSim(){
+  simRunning=false; cancelAnimationFrame(simFrame);
+  simInited=false; cvReady=false;
+  simP={th:300,tc:20,k:401,mat:'Copper'};
+  predAttempts=3;
+  s1attempts=0; s3attempts=0; s4attempts=0;
+  // Reset MCQ visual states
+  ['s1mcq','s3mcq','s4mcq'].forEach(id=>{
+    const c=document.getElementById(id);
+    if(c) c.querySelectorAll('.mcq-opt').forEach(o=>o.className='mcq-opt');
+  });
+  ['s1hint','s3hint','s4hint','pred-hint'].forEach(id=>{
+    const e=document.getElementById(id);if(e){e.classList.remove('show');e.innerHTML='';}
+  });
+  ['s1ins','ins-th','s3ins','ins-tc','s4ins','ins-mat','pred-ins'].forEach(id=>{
+    const e=document.getElementById(id);if(e) e.classList.remove('show');
+  });
+  document.getElementById('s1next').style.display='none';
+  document.getElementById('s3cold').style.display='none';
+  document.getElementById('s3next').style.display='none';
+  document.getElementById('s4mat').style.display='none';
+  document.getElementById('s4next').style.display='none';
+  document.getElementById('in-th').value='';
+  document.getElementById('in-tc').value='';
+  document.getElementById('in-pred').value='';
+  document.querySelectorAll('.mat-btn').forEach((b,i)=>b.classList.toggle('sel',i===0));
+  document.getElementById('custom-k').style.display='none';
+  initSim();
+}
+
+/* ---- Facts Ticker ---- */
+const facts=[
+  "Silver (429 W/m·K) is the best metallic thermal conductor — even better than Copper!",
+  "At steady state the temperature profile is perfectly linear from hot to cold end.",
+  "Fourier published his groundbreaking heat equation in 1822.",
+  "Thermal diffusivity α = k/(ρ·c_p) tells you how fast temperature changes propagate.",
+  "A CPU heat sink uses copper or aluminium fins to rapidly conduct heat away from the chip.",
+  "Double-glazed windows exploit the low k of trapped air to reduce heat loss.",
+  "The explicit finite-difference scheme requires r = αΔt/Δx² ≤ 0.5 for stability.",
+  "Glass (k ≈ 1 W/m·K) conducts heat 400× more slowly than Copper!"
+];
+let factIdx=0;
+setInterval(()=>{
+  factIdx=(factIdx+1)%facts.length;
+  const el=document.getElementById('fact-text');
+  if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=facts[factIdx];el.style.opacity='1';},300);}
+},7000);
+document.getElementById('fact-text').style.transition='opacity .3s';
+
+/* ---- Feedback ---- */
+let rating=0;
+function setRating(n){
+  rating=n;
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<n));
+}
+function submitFeedback(){
+  const name=document.getElementById('fb-name').value.trim();
+  const msg=document.getElementById('fb-msg').value.trim();
+  if(!name||!msg||!rating){
+    document.getElementById('fb-status').style.color='var(--red)';
+    document.getElementById('fb-status').textContent='Please fill in your name, rating, and feedback.';
+    return;
+  }
+  document.getElementById('fb-status').style.color='var(--green)';
+  document.getElementById('fb-status').textContent=`Thank you, ${name}! Your ${rating}-star feedback has been recorded. We appreciate your input!`;
+}
+
+/* ---- Init ---- */
+document.addEventListener('DOMContentLoaded',()=>{
+  buildQuiz('pretest');
+  buildQuiz('posttest');
+  animateBars();
+});
+</script>
+</body>
+</html>
